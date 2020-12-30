@@ -26,8 +26,8 @@ spring:
       client:
         registration:
           google:
-            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
-            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            clientId: 47806868860-4vp4at566nbpm6ma40hdc56aas8sv4am.apps.googleusercontent.com
+            clientSecret: A-2yobge7SgY6zwq7OrrPyRM
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -40,8 +40,8 @@ spring:
               - email
               - public_profile
           github:
-            clientId: e25c49dc1077bfb3c12e
-            clientSecret: b7ba818840c3752404918413731ec57dad17f1ff
+            clientId: 0fe9065915da061d33f7
+            clientSecret: c6020a98be6582b6bf1adec03e5428668dbbeda3
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - user:email
@@ -108,8 +108,8 @@ spring:
       client:
         registration:
           google:
-            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
-            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            clientId: 47806868860-4vp4at566nbpm6ma40hdc56aas8sv4am.apps.googleusercontent.com
+            clientSecret: A-2yobge7SgY6zwq7OrrPyRM
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -192,8 +192,8 @@ spring:
       client:
         registration:
           google:
-            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
-            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            clientId: 47806868860-4vp4at566nbpm6ma40hdc56aas8sv4am.apps.googleusercontent.com
+            clientSecret: A-2yobge7SgY6zwq7OrrPyRM
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
