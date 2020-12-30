@@ -59,7 +59,7 @@ spring:
       auth: true
       starttls.enable: true
       ssl.trust: smtp.gmail.com
-    password: Wdc9FxCAXig8Gn6
+    password: ixpikzwrtmhywggn
 app:
   appName: FullStack template
   frontEndUri: https://fullstack-template-react.herokuapp.com
@@ -141,7 +141,7 @@ spring:
       auth: true
       starttls.enable: true
       ssl.trust: smtp.gmail.com
-    password: Wdc9FxCAXig8Gn6
+    password: ixpikzwrtmhywggn
 app:
   appName: FullStack template
   frontEndUri: http://localhost:3000
