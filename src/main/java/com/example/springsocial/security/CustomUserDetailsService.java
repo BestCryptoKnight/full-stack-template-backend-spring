@@ -24,15 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     UserRepository userRepository;
 
     final
-    ResourceBundleMessageSource messageSource;
-
-    final
     LocaleResolver localeResolver;
 
     @Autowired
-    public CustomUserDetailsService(UserRepository userRepository, ResourceBundleMessageSource messageSource, LocaleResolver localeResolver) {
+    public CustomUserDetailsService(UserRepository userRepository, LocaleResolver localeResolver) {
         this.userRepository = userRepository;
-        this.messageSource = messageSource;
         this.localeResolver = localeResolver;
     }
 

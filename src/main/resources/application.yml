@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    active: production
+---
+spring:
   messages:
     basename: lang/res
     fallback-to-system-locale: true
@@ -6,7 +10,7 @@ spring:
   datasource:
     url: jdbc:h2:./data/demo
     username: root
-    password: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    password: root
     driver-class-name: org.h2.Driver
 
   jpa:

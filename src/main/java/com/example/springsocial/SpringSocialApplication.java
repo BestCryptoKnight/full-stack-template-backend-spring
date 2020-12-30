@@ -13,11 +13,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.time.Duration;
@@ -52,7 +55,8 @@ public class SpringSocialApplication {
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
             AppProperties appProperties,
-            TokenRepository tokenRepository
+            TokenRepository tokenRepository,
+            ResourceLoader resourceLoader
 
 
     ) {
@@ -63,8 +67,8 @@ public class SpringSocialApplication {
             Random random = new Random();
             for (Integer i = 1; i <= 10; i++) {
                 String suffix = i == 1 ? "" : i.toString();
-                File file = ResourceUtils.getFile("classpath:images\\blank-profile-picture.png");
-                FileDb fileDb = new FileDb("blank-profile-picture.png", "image/png", Files.readAllBytes(file.toPath()));
+               InputStream inputStream = resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream();
+                FileDb fileDb = new FileDb("blank-profile-picture.png", "image/png", inputStream.readAllBytes());
                 fileDb.setId((long) i);
                 files.add(fileDb);
                 User user = new User();
