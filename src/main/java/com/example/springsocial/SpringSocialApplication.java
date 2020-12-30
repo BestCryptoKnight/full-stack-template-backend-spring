@@ -1,8 +1,10 @@
 package com.example.springsocial;
 
 import com.example.springsocial.config.AppProperties;
-import com.example.springsocial.model.*;
-import com.example.springsocial.payload.SignUpRequest;
+import com.example.springsocial.model.AuthProvider;
+import com.example.springsocial.model.FileDb;
+import com.example.springsocial.model.JwtToken;
+import com.example.springsocial.model.User;
 import com.example.springsocial.repository.FileRepository;
 import com.example.springsocial.repository.TokenRepository;
 import com.example.springsocial.repository.UserRepository;
@@ -13,22 +15,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppProperties.class)

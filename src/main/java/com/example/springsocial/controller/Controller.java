@@ -2,7 +2,10 @@ package com.example.springsocial.controller;
 
 import com.example.springsocial.config.AppProperties;
 import com.example.springsocial.payload.ApiResponse;
-import com.example.springsocial.repository.*;
+import com.example.springsocial.repository.FileRepository;
+import com.example.springsocial.repository.TokenRepository;
+import com.example.springsocial.repository.TwoFactoryRecoveryCodeRepository;
+import com.example.springsocial.repository.UserRepository;
 import com.example.springsocial.security.CustomUserDetailsService;
 import com.example.springsocial.security.JwtTokenProvider;
 import com.example.springsocial.service.EmailService;

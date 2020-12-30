@@ -1,15 +1,18 @@
 package com.example.springsocial.service;
 
 import com.example.springsocial.config.AppProperties;
-import com.example.springsocial.model.*;
+import com.example.springsocial.model.AuthProvider;
+import com.example.springsocial.model.JwtToken;
+import com.example.springsocial.model.TokenType;
+import com.example.springsocial.model.User;
 import com.example.springsocial.payload.SignUpRequest;
 import com.example.springsocial.repository.TokenRepository;
 import com.example.springsocial.security.JwtTokenProvider;
 import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -26,15 +29,17 @@ public class UserService {
     private final TokenRepository tokenRepository;
     private final AppProperties appProperties;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public UserService( PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository) {
+    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader) {
         this.passwordEncoder = passwordEncoder;
         this.fileStorageService = fileStorageService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
         this.appProperties = appProperties;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenRepository = tokenRepository;
+        this.resourceLoader = resourceLoader;
     }
 
 
@@ -55,7 +60,7 @@ public class UserService {
         user.setProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setTwoFactorEnabled(false);
-        user.setProfileImage(fileStorageService.store(ResourceUtils.getFile("classpath:images\\blank-profile-picture.png")));
+        user.setProfileImage(fileStorageService.store(resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream(),"blank-profile-picture.png", "image/png"));
         return user;
     }
 

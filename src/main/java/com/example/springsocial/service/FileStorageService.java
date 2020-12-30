@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Optional;
@@ -33,7 +34,10 @@ public class FileStorageService {
         FileDb FileDB = new FileDb(fileName, Files.probeContentType(file.toPath()), Files.readAllBytes(file.toPath()));
         return fileDBRepository.save(FileDB);
     }
-
+    public FileDb store(InputStream inputStream,String fileName,String fileType) throws IOException {
+        FileDb FileDB = new FileDb(fileName, fileType,inputStream.readAllBytes());
+        return fileDBRepository.save(FileDB);
+    }
     public FileDb store(String name, URL url) throws IOException {
         FileDb FileDB = new FileDb(name, url.openConnection().getContentType(), IOUtils.toByteArray(url));
         return fileDBRepository.save(FileDB);

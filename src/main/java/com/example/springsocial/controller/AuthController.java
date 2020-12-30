@@ -1,11 +1,11 @@
 package com.example.springsocial.controller;
 
-import com.example.springsocial.model.*;
+import com.example.springsocial.model.JwtToken;
+import com.example.springsocial.model.TokenType;
+import com.example.springsocial.model.TwoFactorRecoveryCode;
+import com.example.springsocial.model.User;
 import com.example.springsocial.payload.*;
-import com.example.springsocial.repository.TokenRepository;
-import com.example.springsocial.security.CurrentUser;
 import com.example.springsocial.security.UserPrincipal;
-import com.example.springsocial.util.CookieUtils;
 import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
@@ -14,11 +14,9 @@ import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,11 +31,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
