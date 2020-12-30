@@ -1,0 +1,242 @@
+spring:
+  messages:
+    basename: lang/res
+    fallback-to-system-locale: true
+  profiles: development
+  datasource:
+    url: jdbc:h2:./data/demo
+    username: root
+    password: root
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        generate_statistics: true
+        jdbc:
+          batch_size: 100000
+        order_inserts: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
+            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: 846265619474835
+            clientSecret: 4a5e0644f6758bbbef564885777a3da8
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - public_profile
+          github:
+            clientId: e25c49dc1077bfb3c12e
+            clientSecret: b7ba818840c3752404918413731ec57dad17f1ff
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+        provider:
+          facebook:
+            authorizationUri: https://www.facebook.com/v3.0/dialog/oauth
+            tokenUri: https://graph.facebook.com/v3.0/oauth/access_token
+            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hasatori235@gmail.com
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: smtp.gmail.com
+    password: Wdc9FxCAXig8Gn6
+app:
+  appName: FullStack template
+  frontEndUri: http://localhost:3000
+  deleteExpiredTokensDelayMsec: 300000 # 5 minutes
+  allowedOrigins:
+    - ${app.frontEndUri}
+    - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  authorizedRedirectUris:
+  - ${app.frontEndUri}/oauth2/redirect
+  - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  accountActivationUri: ${app.frontEndUri}/activate-account
+  emailChangeConfirmationUri: ${app.frontEndUri}/confirm-email-change
+  passwordResetUri: ${app.frontEndUri}/password-reset
+  auth:
+    tokenSecret: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    accessTokenExpirationMsec: 300000 # 5 minutes
+    persistentTokenExpirationMsec: 2592000000 # 30 days
+    verificationTokenExpirationMsec: 3600000 # 1 hour
+
+
+---
+spring:
+  messages:
+    basename: lang/res
+    fallback-to-system-locale: true
+  profiles: production
+  datasource:
+    url: jdbc:h2:./data/demo
+    username: root
+    password: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
+            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: 846265619474835
+            clientSecret: 4a5e0644f6758bbbef564885777a3da8
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - public_profile
+          github:
+            clientId: e25c49dc1077bfb3c12e
+            clientSecret: b7ba818840c3752404918413731ec57dad17f1ff
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+        provider:
+          facebook:
+            authorizationUri: https://www.facebook.com/v3.0/dialog/oauth
+            tokenUri: https://graph.facebook.com/v3.0/oauth/access_token
+            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hasatori235@gmail.com
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: smtp.gmail.com
+    password: Wdc9FxCAXig8Gn6
+app:
+  appName: FullStack template
+  frontEndUri: https://fullstack-template-react.herokuapp.com
+  deleteExpiredTokensDelayMsec: 86400000 # 1 day
+  allowedOrigins:
+      - ${app.frontEndUri}/oauth2/redirect
+      - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  authorizedRedirectUris:
+   - ${app.frontEndUri}/oauth2/redirect
+   - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  accountActivationUri: ${app.frontEndUri}/activate-account
+  emailChangeConfirmationUri: ${app.frontEndUri}/confirm-email-change
+  passwordResetUri: ${app.frontEndUri}/password-reset
+  auth:
+    tokenSecret: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    accessTokenExpirationMsec: 300000 # 5 minutes
+    persistentTokenExpirationMsec: 2592000000 # 30 days
+    verificationTokenExpirationMsec: 3600000 # 1 hour
+
+---
+spring:
+  messages:
+    basename: lang/res
+    fallback-to-system-locale: true
+
+  profiles: test
+  forntEndUri: <TBD>
+  authorizedRedirectUri: ${frontEndUri}/<TBD>
+  accountActivationUri: ${frontEndUri}/<TBD>
+  datasource:
+    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+    username: test
+    password: test
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
+            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: 846265619474835
+            clientSecret: 4a5e0644f6758bbbef564885777a3da8
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - public_profile
+          github:
+            clientId: e25c49dc1077bfb3c12e
+            clientSecret: b7ba818840c3752404918413731ec57dad17f1ff
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+        provider:
+          facebook:
+            authorizationUri: https://www.facebook.com/v3.0/dialog/oauth
+            tokenUri: https://graph.facebook.com/v3.0/oauth/access_token
+            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+  mail:
+    host: localhost
+    port: 2255
+    username: username
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: localhost
+    password: password
+app:
+  appName: FullStack template
+  frontEndUri: http://test.com
+  deleteExpiredTokensDelayMsec: 1000
+  allowedOrigins:
+      - ${app.frontEndUri}
+      - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  authorizedRedirectUris:
+   - ${app.frontEndUri}
+   - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  accountActivationUri: ${app.frontEndUri}/activate-account
+  emailChangeConfirmationUri: ${app.frontEndUri}/confirm-email-change
+  passwordResetUri: ${app.frontEndUri}/password-reset
+  auth:
+    tokenSecret: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    accessTokenExpirationMsec: 86400000 # 1 day
+    persistentTokenExpirationMsec: 2592000000 # 30 days
+    verificationTokenExpirationMsec: 3600000 # 1 hour
+
