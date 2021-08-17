@@ -189,6 +189,7 @@ public class UserController extends Controller {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
         User user = userRepository.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageSource.getMessage("userNotFound", null, localeResolver.resolveLocale(request))));
+        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         emailService.sendSimpleMessage(
                 user.getEmail(),
                 messageSource.getMessage("twoFactorSetupEmailSubject", null, localeResolver.resolveLocale(request)),

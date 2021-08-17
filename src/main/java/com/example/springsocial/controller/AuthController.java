@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -33,6 +34,8 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
+import static com.example.springsocial.service.UserService.REFRESH_TOKEN_COOKIE_NAME;
 
 @RestController
 @RequestMapping("/auth")
@@ -235,7 +238,7 @@ public class AuthController extends Controller {
         authResponse.setAccessToken(accessToken);
         String refreshTokenValue = jwtTokenProvider.createToken(user, Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS));
         JwtToken refreshToken = tokenRepository.save(userService.createToken(user, refreshTokenValue, TokenType.REFRESH));
-        response.addCookie(userService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));
+        response.setHeader("Set-Cookie", REFRESH_TOKEN_COOKIE_NAME+"="+refreshToken.getValue()+"; Path=/; HttpOnly; SameSite=Strict;");
         return authResponse;
     }
 

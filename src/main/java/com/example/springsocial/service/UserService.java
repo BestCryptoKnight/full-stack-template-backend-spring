@@ -17,12 +17,15 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
 public class UserService {
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "rt_cookie";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "rt_cookie";
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final SecretGenerator twoFactorSecretGenerator;
@@ -94,4 +97,6 @@ public class UserService {
                 .findFirst()
                 .flatMap(cookie -> tokenRepository.findByValueAndTokenType(cookie.getValue(), TokenType.REFRESH));
     }
+
+
 }
