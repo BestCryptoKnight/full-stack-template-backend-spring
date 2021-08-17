@@ -92,10 +92,13 @@ public class UserService {
 
 
     public Optional<JwtToken> getRefreshTokenFromRequest(HttpServletRequest request) {
-        return Arrays.stream(request.getCookies())
-                .filter(cookie -> REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName()))
-                .findFirst()
-                .flatMap(cookie -> tokenRepository.findByValueAndTokenType(cookie.getValue(), TokenType.REFRESH));
+        if (request.getCookies()!=null) {
+            return Arrays.stream(request.getCookies())
+                    .filter(cookie -> REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName()))
+                    .findFirst()
+                    .flatMap(cookie -> tokenRepository.findByValueAndTokenType(cookie.getValue(), TokenType.REFRESH));
+        }
+        return Optional.empty();
     }
 
 
