@@ -1,0 +1,17 @@
+app:
+  frontEndUri: http://localhost:3000
+  deleteExpiredTokensDelayMsec: 30000 # 30 seconds
+  allowedOrigins:
+    - ${app.frontEndUri}
+    - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  authorizedRedirectUris:
+    - ${app.frontEndUri}/oauth2/redirect
+    - https://auth.expo.io/@hasatori/ReactNativeFrontend
+  accountActivationUri: ${app.frontEndUri}/activate-account
+  emailChangeConfirmationUri: ${app.frontEndUri}/confirm-email-change
+  passwordResetUri: ${app.frontEndUri}/password-reset
+  auth:
+    tokenSecret: MLsUyuy%X0zhpOH&M#hW3o6AIFKS*%ErSJTmbHg2ua0WJJAkgS
+    accessTokenExpirationMsec: 30000 # 30 seconds
+    persistentTokenExpirationMsec: 120000 # 2 minute
+    verificationTokenExpirationMsec: 60000 # 1 minute
