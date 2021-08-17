@@ -1,12 +1,18 @@
 package com.example.springsocial.util;
 
+import org.apache.catalina.connector.Response;
 import org.apache.http.protocol.HttpService;
+import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.springframework.util.SerializationUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.Optional;
 
 public class CookieUtils {
@@ -27,7 +33,7 @@ public class CookieUtils {
 
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/;SameSite=strict");
+        cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
