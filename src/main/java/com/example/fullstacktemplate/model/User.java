@@ -30,7 +30,7 @@ public class User {
     @Column
     private String requestedNewEmail;
 
-    @OneToOne(targetEntity = FileDb.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToOne(targetEntity = FileDb.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_image")
     private FileDb profileImage;
 
@@ -50,9 +50,9 @@ public class User {
     @Column(nullable = false)
     private Boolean twoFactorEnabled;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<TwoFactorRecoveryCode> twoFactorRecoveryCodes;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<JwtToken> jwtTokens;
 }

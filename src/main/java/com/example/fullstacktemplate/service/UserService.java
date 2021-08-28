@@ -4,13 +4,12 @@ import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ChangePasswordDto;
 import com.example.fullstacktemplate.dto.SignUpRequest;
 import com.example.fullstacktemplate.dto.TokenAccessRequest;
-import com.example.fullstacktemplate.dto.UserDto;
 import com.example.fullstacktemplate.exception.*;
-import com.example.fullstacktemplate.mapper.UserMapper;
 import com.example.fullstacktemplate.model.AuthProvider;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.User;
+import com.example.fullstacktemplate.repository.FileRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.security.JwtTokenProvider;
@@ -21,7 +20,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -47,9 +45,9 @@ public class UserService {
     private final ResourceLoader resourceLoader;
     private final UserRepository userRepository;
     private final EmailService emailService;
-
+    private final FileRepository fileRepository;
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService) {
+    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileRepository fileRepository) {
         this.passwordEncoder = passwordEncoder;
         this.fileStorageService = fileStorageService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
@@ -59,6 +57,7 @@ public class UserService {
         this.resourceLoader = resourceLoader;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.fileRepository = fileRepository;
     }
 
     public JwtToken createToken(User user, String value, TokenType tokenType) {
