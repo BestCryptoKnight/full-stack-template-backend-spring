@@ -1,13 +1,11 @@
 package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.dto.ApiResponse;
 import com.example.fullstacktemplate.dto.ChangePasswordDto;
 import com.example.fullstacktemplate.dto.SignUpRequest;
 import com.example.fullstacktemplate.dto.TokenAccessRequest;
-import com.example.fullstacktemplate.exception.InvalidTokenException;
-import com.example.fullstacktemplate.exception.TokenExpiredException;
-import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
+import com.example.fullstacktemplate.dto.UserDto;
+import com.example.fullstacktemplate.exception.*;
 import com.example.fullstacktemplate.mapper.UserMapper;
 import com.example.fullstacktemplate.model.AuthProvider;
 import com.example.fullstacktemplate.model.JwtToken;
@@ -19,19 +17,21 @@ import com.example.fullstacktemplate.security.JwtTokenProvider;
 import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -46,9 +46,10 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ResourceLoader resourceLoader;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, UserMapper userMapper, ResourceBundleMessageSource messageSource, LocaleResolver localeResolver, EmailService emailService) {
+    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService) {
         this.passwordEncoder = passwordEncoder;
         this.fileStorageService = fileStorageService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
@@ -57,6 +58,7 @@ public class UserService {
         this.tokenRepository = tokenRepository;
         this.resourceLoader = resourceLoader;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     public JwtToken createToken(User user, String value, TokenType tokenType) {
@@ -100,7 +102,7 @@ public class UserService {
 
     public User updateUserPassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
-        return user;
+        return userRepository.save(user);
     }
 
 
@@ -161,7 +163,7 @@ public class UserService {
     }
 
     public User enableTwoFactorAuthentication(User user) {
-        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
+        user.setTwoFactorEnabled(true);
         return userRepository.save(user);
     }
 
@@ -170,7 +172,7 @@ public class UserService {
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
             if (!jwtTokenProvider.validateToken(tokenAccessRequest.getToken())) {
-               throw new TokenExpiredException();
+                throw new TokenExpiredException();
             } else {
                 user.setEmail(user.getRequestedNewEmail());
                 user.setRequestedNewEmail(null);
@@ -182,8 +184,21 @@ public class UserService {
         throw new InvalidTokenException();
     }
 
-    public User save(User user) {
-        return userRepository.save(user);
+    public User updateProfile(Long currentUserId, User newUser, Locale locale) throws MalformedURLException, URISyntaxException {
+        User user = findById(currentUserId).orElseThrow(UserNotFoundException::new);
+        if (!newUser.getEmail().equals(user.getEmail()) && isEmailUsed(newUser.getEmail())) {
+            throw new EmailInUseException();
+        }
+        if (!newUser.getName().equals(user.getName()) && isUsernameUsed(newUser.getName())) {
+            throw new UsernameInUse();
+        }
+        String newEmail = newUser.getRequestedNewEmail();
+        if (user.getRequestedNewEmail()!=null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {
+            String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+            createToken(user, tokenValue, TokenType.EMAIL_UPDATE);
+            emailService.sendEmailChangeConfirmationMessage(newEmail, user.getEmail(), tokenValue, locale);
+        }
+        return userRepository.save(newUser);
     }
 
     public boolean isUsernameUsed(String username) {

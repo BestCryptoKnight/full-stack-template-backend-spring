@@ -150,7 +150,7 @@ public class AuthController extends Controller {
         } else if (!jwtTokenProvider.validateToken(passwordResetRequest.getToken())) {
             throw new TokenExpiredException();
         } else {
-            userService.save(userService.updateUserPassword(user, passwordResetRequest.getPassword()));
+            userService.updateUserPassword(user, passwordResetRequest.getPassword());
             tokenRepository.delete(optionalForgottenPassword.get());
             return ResponseEntity.ok()
                     .body(new ApiResponse(true, messageSource.getMessage("passwordWasReset", null, localeResolver.resolveLocale(request))));

@@ -1,12 +1,9 @@
 package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.dto.*;
-import com.example.fullstacktemplate.exception.EmailInUseException;
 import com.example.fullstacktemplate.exception.UserNotFoundException;
-import com.example.fullstacktemplate.exception.UsernameInUse;
 import com.example.fullstacktemplate.mapper.UserMapper;
 import com.example.fullstacktemplate.model.JwtToken;
-import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.TwoFactorRecoveryCode;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.security.CurrentUser;
@@ -22,11 +19,7 @@ import dev.samstevens.totp.time.TimeProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,31 +50,10 @@ public class UserController extends Controller {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    @PostMapping("/update-profile")
+    @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody UserDto userDto, HttpServletRequest request) throws MalformedURLException, URISyntaxException {
-        if (!userDto.getEmail().equals(userPrincipal.getEmail()) && userService.isEmailUsed(userDto.getEmail())) {
-            throw new EmailInUseException();
-        }
-        if (!userDto.getName().equals(userPrincipal.getName()) && userService.isUsernameUsed(userDto.getName())) {
-            throw new UsernameInUse();
-        }
-
-        String newEmail = userDto.getEmail();
-        User user = userService.save(userMapper.toEntity(userPrincipal.getId(), userDto));
-        if (!StringUtils.isEmpty(userDto.getEmail()) && !user.getEmail().equals(userDto.getEmail())) {
-            String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
-            userService.createToken(user, tokenValue, TokenType.EMAIL_UPDATE);
-            emailService.sendEmailChangeConfirmationMessage(newEmail,user.getEmail(), tokenValue, localeResolver.resolveLocale(request));
-        }
-
-        UpdateProfileResponse updateProfileResponse = new UpdateProfileResponse();
-        updateProfileResponse.setUser(userMapper.toDto(user));
-        String message = messageSource.getMessage("userProfileUpdate", null, localeResolver.resolveLocale(request));
-        if (!StringUtils.isEmpty(userDto.getEmail()) && !user.getEmail().equals(userDto.getEmail())) {
-            message += "." + messageSource.getMessage("confirmAccountEmailChangeMessage", null, localeResolver.resolveLocale(request));
-        }
-        updateProfileResponse.setMessage(message);
-        return ResponseEntity.ok().body(updateProfileResponse);
+        userService.updateProfile(userPrincipal.getId(), userMapper.toEntity(userPrincipal.getId(),userDto), localeResolver.resolveLocale(request));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/cancel-account")
@@ -102,17 +74,18 @@ public class UserController extends Controller {
         return ResponseEntity.ok(authResponse);
     }
 
-    @PostMapping("/disable-two-factor")
+    @PutMapping("/disable-two-factor")
     public ResponseEntity<?> disableTwoFactor(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         userService.disableTwoFactorAuthentication(user);
-        return ResponseEntity.ok().body(new ApiResponse(true, messageSource.getMessage("twoFactorAuthenticationDisabled", null, localeResolver.resolveLocale(request))));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/getTwoFactorSetup")
-    public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) throws QrGenerationException {
+    public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) throws QrGenerationException, MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageSource.getMessage("userNotFound", null, localeResolver.resolveLocale(request))));
-        user = userService.enableTwoFactorAuthentication(user);
+        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
+        userService.updateProfile(userPrincipal.getId(),user,localeResolver.resolveLocale(request));
         QrData data = new QrData.Builder()
                 .label(user.getEmail())
                 .secret(user.getTwoFactorSecret())
@@ -150,9 +123,10 @@ public class UserController extends Controller {
 
 
     @PostMapping("/getTwoFactorSetupSecret")
-    public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
+    public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) throws MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
+        userService.updateProfile(userPrincipal.getId(),user,localeResolver.resolveLocale(request));
         emailService.sendSimpleMessage(
                 user.getEmail(),
                 messageSource.getMessage("twoFactorSetupEmailSubject", null, localeResolver.resolveLocale(request)),
@@ -171,7 +145,6 @@ public class UserController extends Controller {
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
         RecoveryCodeGenerator recoveryCodeGenerator = new RecoveryCodeGenerator();
-
         if (verifier.isValidCode(user.getTwoFactorSecret(), twoFactorVerificationRequest.getCode())) {
             user = userService.enableTwoFactorAuthentication(user);
             TwoFactorVerificationResponse twoFactorVerificationResponse = new TwoFactorVerificationResponse();
