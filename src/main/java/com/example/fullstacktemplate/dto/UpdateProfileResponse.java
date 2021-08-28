@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.payload;
+package com.example.fullstacktemplate.dto;
 
 import com.example.fullstacktemplate.model.User;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class UpdateProfileResponse {
 
-   private User user;
+   private UserDto user;
    private String message;
 
 }

@@ -2,7 +2,7 @@ package com.example.fullstacktemplate.controller;
 
 
 import com.example.fullstacktemplate.model.FileDb;
-import com.example.fullstacktemplate.payload.ApiResponse;
+import com.example.fullstacktemplate.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

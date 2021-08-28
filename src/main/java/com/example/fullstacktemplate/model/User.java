@@ -21,45 +21,38 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false,unique = true)
-    @Size(min = 4, message = "name.lengthRestriction")
     private String name;
 
-    @Email
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Email
     @Column
     private String requestedNewEmail;
 
     @OneToOne(targetEntity = FileDb.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "profile_image")
     private FileDb profileImage;
-    @JsonIgnore
+
     @Column(nullable = false)
     private Boolean emailVerified = false;
 
-    @JsonIgnore
     private String password;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-    @JsonIgnore
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
     private String providerId;
-    @JsonIgnore
     private String twoFactorSecret;
 
     @Column(nullable = false)
     private Boolean twoFactorEnabled;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<TwoFactorRecoveryCode> twoFactorRecoveryCodes;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    @JsonIgnore
     private List<JwtToken> jwtTokens;
 }

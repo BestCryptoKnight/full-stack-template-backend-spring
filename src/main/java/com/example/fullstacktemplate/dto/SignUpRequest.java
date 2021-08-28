@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.payload;
+package com.example.fullstacktemplate.dto;
 
 import lombok.Getter;
 import lombok.Setter;

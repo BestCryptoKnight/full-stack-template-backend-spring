@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.payload;
+package com.example.fullstacktemplate.dto;
 
 
 import lombok.Getter;
@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class ChangePassword {
+public class ChangePasswordDto {
 
     @NotBlank(message = "password.blank")
     private String currentPassword;

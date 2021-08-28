@@ -2,7 +2,7 @@ package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.model.*;
-import com.example.fullstacktemplate.payload.*;
+import com.example.fullstacktemplate.dto.*;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.security.JwtTokenProvider;
@@ -133,7 +133,7 @@ public class AuthControllerIT {
     @Test
     public void activateUserAccountTest_existingUserAndValidNotExpiredToken_ShouldActivate() throws Exception {
         User userWithoutActivatedAccount = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), false, false));
-        String token = jwtTokenProvider.createToken(userWithoutActivatedAccount, Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String token = jwtTokenProvider.createTokenValue(userWithoutActivatedAccount.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
         tokenRepository.save(createToken(userWithoutActivatedAccount, token, TokenType.ACCOUNT_ACTIVATION));
 
         MvcResult mvcResult = activateAccount(EMAIL, token);
@@ -150,7 +150,7 @@ public class AuthControllerIT {
     @Test
     public void activateUserAccountTest_existingUserAndValidExpiredToken_ShouldNotActivate() throws Exception {
         User existingUser = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), false, false));
-        String token = jwtTokenProvider.createToken(existingUser, Duration.of(0L, ChronoUnit.MILLIS));
+        String token = jwtTokenProvider.createTokenValue(existingUser.getId(), Duration.of(0L, ChronoUnit.MILLIS));
         tokenRepository.save(createToken(existingUser, token, TokenType.ACCOUNT_ACTIVATION));
 
         MvcResult mvcResult = activateAccount(EMAIL, token);

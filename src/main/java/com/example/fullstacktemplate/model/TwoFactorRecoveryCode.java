@@ -21,5 +21,7 @@ public class TwoFactorRecoveryCode {
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
+    @Column(name = "user_id",insertable = false,updatable = false)
+    private Long userId;
 
 }

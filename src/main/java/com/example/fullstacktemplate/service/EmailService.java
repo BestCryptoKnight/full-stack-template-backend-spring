@@ -1,10 +1,8 @@
 package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.payload.ForgottenPasswordRequest;
-import com.example.fullstacktemplate.payload.SignUpRequest;
-import com.example.fullstacktemplate.payload.UpdateProfileRequest;
+import com.example.fullstacktemplate.dto.ForgottenPasswordRequest;
+import com.example.fullstacktemplate.dto.SignUpRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -52,13 +50,13 @@ public class EmailService {
         );
     }
 
-    public void sendEmailChangeConfirmationMessage(User user, UpdateProfileRequest updateProfileRequest, String token, Locale messageLocale) throws URISyntaxException, MalformedURLException {
+    public void sendEmailChangeConfirmationMessage(String newEmail, String oldEmail, String token, Locale messageLocale) throws URISyntaxException, MalformedURLException {
         URIBuilder uriBuilder = new URIBuilder(appProperties.getEmailChangeConfirmationUri())
                 .addParameter("token", token);
         this.sendSimpleMessage(
-                updateProfileRequest.getEmail(),
+                newEmail,
                 messageSource.getMessage("confirmAccountEmailChangeEmailSubject", new Object[]{appProperties.getAppName()}, messageLocale),
-                messageSource.getMessage("confirmAccountEmailChangeEmailBody", new Object[]{user.getEmail(), updateProfileRequest.getEmail(), uriBuilder.build().toURL().toString()}, messageLocale)
+                messageSource.getMessage("confirmAccountEmailChangeEmailBody", new Object[]{oldEmail, newEmail, uriBuilder.build().toURL().toString()}, messageLocale)
         );
     }
 

@@ -1,10 +1,7 @@
 package com.example.fullstacktemplate;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.model.AuthProvider;
-import com.example.fullstacktemplate.model.FileDb;
-import com.example.fullstacktemplate.model.JwtToken;
-import com.example.fullstacktemplate.model.User;
+import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.repository.FileRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
@@ -76,6 +73,11 @@ public class SpringSocialApplication {
                 user.setTwoFactorEnabled(false);
                 user.setEmailVerified(true);
                 user.setProfileImage(fileDb);
+                if (i % 2 == 0){
+                    user.setRole(Role.ADMIN);
+                }else {
+                    user.setRole(Role.USER);
+                }
                 users.add(user);
 /*
 

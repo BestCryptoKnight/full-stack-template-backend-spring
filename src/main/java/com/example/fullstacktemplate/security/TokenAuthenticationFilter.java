@@ -1,5 +1,7 @@
 package com.example.fullstacktemplate.security;
 
+import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
+import com.example.fullstacktemplate.exception.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,20 +39,15 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            String jwt = getAccessJwtFromRequest(request).orElse(null);
-            if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
+        String jwt = getAccessJwtFromRequest(request).orElse(null);
+        if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
+            Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
+            UserDetails userDetails = customUserDetailsService.loadUserById(userId)
+                    .orElseThrow(UserNotFoundException::new);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
-                UserDetails userDetails = customUserDetailsService.loadUserById(userId)
-                        .orElseThrow(() -> new IllegalStateException(messageSource.getMessage("userNotFound", null, localeResolver.resolveLocale(request))));
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

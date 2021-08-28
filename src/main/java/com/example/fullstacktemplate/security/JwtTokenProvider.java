@@ -1,7 +1,6 @@
 package com.example.fullstacktemplate.security;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.model.User;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +20,11 @@ public class JwtTokenProvider {
         this.appProperties = appProperties;
     }
 
-    public String createToken(User user, Duration expireIn) {
-        return createToken(Long.toString(user.getId()), expireIn);
+    public String createTokenValue(Long id, Duration expireIn) {
+        return createTokenValue(Long.toString(id), expireIn);
     }
 
-    public String createToken(UserPrincipal userPrincipal, Duration expireIn) {
-        return createToken(Long.toString(userPrincipal.getId()), expireIn);
-    }
-
-    private String createToken(String subject, Duration expireIn) {
+    private String createTokenValue(String subject, Duration expireIn) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expireIn.toMillis());
 
