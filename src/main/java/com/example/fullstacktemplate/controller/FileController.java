@@ -38,13 +38,13 @@ public class FileController extends Controller {
     }
 
     @GetMapping(value = "/file/{id}")
-    public ResponseEntity<?> getFile(@PathVariable String id, HttpServletRequest request) {
+    public ResponseEntity<?> getFile(@PathVariable String id) {
         Optional<FileDb> fileDbOptional = storageService.getFile(id);
         return fileDbOptional.<ResponseEntity<?>>map(fileDb ->
                 ResponseEntity.ok()
                 .body(fileDb))
                 .orElseGet(() ->
                         ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(new ApiResponse(false, messageSource.getMessage("fileNotExist", null, localeResolver.resolveLocale(request)))));
+                                .body(new ApiResponse(false, messageService.getMessage("fileNotExist"))));
     }
 }

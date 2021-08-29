@@ -6,6 +6,7 @@ import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.security.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,14 +32,15 @@ import static com.example.fullstacktemplate.service.UserService.REFRESH_TOKEN_CO
 
 @RestController
 @RequestMapping("/auth")
+@Slf4j
 public class AuthController extends Controller {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Authentication authentication = getAuthentication(loginRequest.getEmail(), loginRequest.getPassword());
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        User user = userService.findByEmail(userPrincipal.getEmail()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findByEmail(userPrincipal.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
         if (user.getEmailVerified()) {
             if (user.getTwoFactorEnabled()) {
                 AuthResponse authResponse = new AuthResponse();
@@ -48,7 +50,7 @@ public class AuthController extends Controller {
                 return ResponseEntity.ok(getAuthResponse(user, response));
             }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, messageSource.getMessage("accountNotActivated", null, localeResolver.resolveLocale(request))));
+            throw new BadRequestException("accountNotActivated");
         }
     }
 
@@ -72,13 +74,13 @@ public class AuthController extends Controller {
         if (authenticationService.isVerificationCodeValid(userPrincipal.getId(), loginVerificationRequest.getCode())) {
             return ResponseEntity.ok(getAuthResponse(user, response));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageSource.getMessage("invalidVerificationCode", null, localeResolver.resolveLocale(request))));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageService.getMessage("invalidVerificationCode")));
         }
     }
 
     @PostMapping("/login/recovery-code")
     public ResponseEntity<?> loginRecoveryCode(@Valid @RequestBody LoginVerificationRequest
-                                                       loginVerificationRequest, HttpServletResponse response, HttpServletRequest request) {
+                                                       loginVerificationRequest, HttpServletResponse response) {
         Authentication authentication = getAuthentication(loginVerificationRequest.getEmail(), loginVerificationRequest.getPassword());
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         User user = userService.findByEmail(userPrincipal.getEmail()).orElseThrow(UserNotFoundException::new);
@@ -86,13 +88,12 @@ public class AuthController extends Controller {
             authenticationService.deleteRecoveryCode(user.getId(), loginVerificationRequest.getCode());
             return ResponseEntity.ok(getAuthResponse(user, response));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageSource.getMessage("invalidRecoveryCode", null, localeResolver.resolveLocale(request))));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageService.getMessage("invalidRecoveryCode")));
         }
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws
-            URISyntaxException, IOException {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) throws URISyntaxException, IOException {
         if (userService.isEmailUsed(signUpRequest.getEmail())) {
             throw new EmailInUseException();
         }
@@ -102,47 +103,47 @@ public class AuthController extends Controller {
         User user = userService.createNewUser(signUpRequest);
         String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
         tokenRepository.save(userService.createToken(user, tokenValue, TokenType.ACCOUNT_ACTIVATION));
-        emailService.sendAccountActivationMessage(signUpRequest, tokenValue, localeResolver.resolveLocale(request));
+        emailService.sendAccountActivationMessage(signUpRequest, tokenValue);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/user/me")
                 .buildAndExpand(user.getId()).toUri();
         return ResponseEntity.created(location)
-                .body(new ApiResponse(true, messageSource.getMessage("userWasRegistered", null, localeResolver.resolveLocale(request))));
+                .body(new ApiResponse(true, messageService.getMessage("userWasRegistered")));
     }
 
     @PostMapping("/activateAccount")
-    public ResponseEntity<?> activateUserAccount(@Valid @RequestBody TokenAccessRequest tokenAccessRequest, HttpServletRequest request) {
+    public ResponseEntity<?> activateUserAccount(@Valid @RequestBody TokenAccessRequest tokenAccessRequest) {
         userService.activateUserAccount(tokenAccessRequest);
         return ResponseEntity.ok()
-                .body(new ApiResponse(true, messageSource.getMessage("accountActivated", null, localeResolver.resolveLocale(request))));
+                .body(new ApiResponse(true, messageService.getMessage("accountActivated")));
     }
 
     @PostMapping("/confirm-email-change")
-    public ResponseEntity<?> confirmEmailChange(@Valid @RequestBody TokenAccessRequest tokenAccessRequest, HttpServletRequest request) {
+    public ResponseEntity<?> confirmEmailChange(@Valid @RequestBody TokenAccessRequest tokenAccessRequest) {
         userService.activateRequestedEmail(tokenAccessRequest);
         return ResponseEntity.ok()
-                .body(new ApiResponse(true, messageSource.getMessage("emailUpdated", null, localeResolver.resolveLocale(request))));
+                .body(new ApiResponse(true, messageService.getMessage("emailUpdated")));
 
     }
 
     @PostMapping("/forgottenPassword")
     public ResponseEntity<?> forgottenPassword(@Valid @RequestBody ForgottenPasswordRequest
-                                                       forgottenPasswordRequest, HttpServletRequest request) throws MalformedURLException, URISyntaxException {
+                                                       forgottenPasswordRequest) throws MalformedURLException, URISyntaxException {
         User user = userService.findByEmail(forgottenPasswordRequest.getEmail()).orElseThrow(UserNotFoundException::new);
         if (user.getEmailVerified()) {
             String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
             userService.createToken(user, tokenValue, TokenType.FORGOTTEN_PASSWORD);
-            emailService.sendPasswordResetMessage(forgottenPasswordRequest, tokenValue, localeResolver.resolveLocale(request));
+            emailService.sendPasswordResetMessage(forgottenPasswordRequest, tokenValue);
             return ResponseEntity
                     .ok()
-                    .body(new ApiResponse(true, messageSource.getMessage("passwordResetEmailSentMessage", null, localeResolver.resolveLocale(request))));
+                    .body(new ApiResponse(true, messageService.getMessage("passwordResetEmailSentMessage")));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, messageSource.getMessage("accountNotActivated", null, localeResolver.resolveLocale(request))));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, messageService.getMessage("accountNotActivated")));
         }
     }
 
     @PostMapping("/passwordReset")
-    public ResponseEntity<?> passwordReset(@Valid @RequestBody PasswordResetRequest passwordResetRequest, HttpServletRequest request) {
+    public ResponseEntity<?> passwordReset(@Valid @RequestBody PasswordResetRequest passwordResetRequest) {
         User user = userService.findByEmail(passwordResetRequest.getEmail()).orElseThrow(UserNotFoundException::new);
         Optional<JwtToken> optionalForgottenPassword = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
         if (!optionalForgottenPassword.isPresent() || !optionalForgottenPassword.get().getValue().equals(passwordResetRequest.getToken())) {
@@ -153,7 +154,7 @@ public class AuthController extends Controller {
             userService.updateUserPassword(user, passwordResetRequest.getPassword());
             tokenRepository.delete(optionalForgottenPassword.get());
             return ResponseEntity.ok()
-                    .body(new ApiResponse(true, messageSource.getMessage("passwordWasReset", null, localeResolver.resolveLocale(request))));
+                    .body(new ApiResponse(true, messageService.getMessage("passwordWasReset")));
         }
     }
 

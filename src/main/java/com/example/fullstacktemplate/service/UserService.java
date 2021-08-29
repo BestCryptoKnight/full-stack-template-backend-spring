@@ -46,6 +46,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final FileRepository fileRepository;
+
     @Autowired
     public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileRepository fileRepository) {
         this.passwordEncoder = passwordEncoder;
@@ -183,7 +184,7 @@ public class UserService {
         throw new InvalidTokenException();
     }
 
-    public User updateProfile(Long currentUserId, User newUser, Locale locale) throws MalformedURLException, URISyntaxException {
+    public User updateProfile(Long currentUserId, User newUser) throws MalformedURLException, URISyntaxException {
         User user = findById(currentUserId).orElseThrow(UserNotFoundException::new);
         if (!newUser.getEmail().equals(user.getEmail()) && isEmailUsed(newUser.getEmail())) {
             throw new EmailInUseException();
@@ -192,10 +193,10 @@ public class UserService {
             throw new UsernameInUse();
         }
         String newEmail = newUser.getRequestedNewEmail();
-        if (user.getRequestedNewEmail()!=null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {
+        if (user.getRequestedNewEmail() != null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {
             String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
             createToken(user, tokenValue, TokenType.EMAIL_UPDATE);
-            emailService.sendEmailChangeConfirmationMessage(newEmail, user.getEmail(), tokenValue, locale);
+            emailService.sendEmailChangeConfirmationMessage(newEmail, user.getEmail(), tokenValue);
         }
         return userRepository.save(newUser);
     }

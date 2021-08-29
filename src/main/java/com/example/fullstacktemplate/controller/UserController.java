@@ -44,48 +44,48 @@ public class UserController extends Controller {
     }
 
     @GetMapping("/user/me")
-    public UserDto getCurrentUser(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
+    public UserDto getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
         return userService.findById(userPrincipal.getId())
                 .map(userMapper::toDto)
                 .orElseThrow(UserNotFoundException::new);
     }
 
     @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfile(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody UserDto userDto, HttpServletRequest request) throws MalformedURLException, URISyntaxException {
-        userService.updateProfile(userPrincipal.getId(), userMapper.toEntity(userPrincipal.getId(),userDto), localeResolver.resolveLocale(request));
+    public ResponseEntity<?> updateProfile(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody UserDto userDto) throws MalformedURLException, URISyntaxException {
+        userService.updateProfile(userPrincipal.getId(), userMapper.toEntity(userPrincipal.getId(), userDto));
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/cancel-account")
     public ResponseEntity<?> cancelAccount(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
         userService.cancelUserAccount(userPrincipal.getId());
-        return ResponseEntity.ok(new ApiResponse(true, messageSource.getMessage("accountCancelled", null, localeResolver.resolveLocale(request))));
+        return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("accountCancelled")));
     }
 
     @PostMapping("/changePassword")
-    public ResponseEntity<?> changePassword(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody ChangePasswordDto changePasswordDto, HttpServletRequest request) {
+    public ResponseEntity<?> changePassword(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody ChangePasswordDto changePasswordDto) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         user = userService.updatePassword(user, changePasswordDto);
         String accessToken = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
         AuthResponse authResponse = new AuthResponse();
         authResponse.setTwoFactorRequired(false);
         authResponse.setAccessToken(accessToken);
-        authResponse.setMessage(messageSource.getMessage("passwordUpdated", null, localeResolver.resolveLocale(request)));
+        authResponse.setMessage(messageService.getMessage("passwordUpdated"));
         return ResponseEntity.ok(authResponse);
     }
 
     @PutMapping("/disable-two-factor")
-    public ResponseEntity<?> disableTwoFactor(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
+    public ResponseEntity<?> disableTwoFactor(@CurrentUser UserPrincipal userPrincipal) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         userService.disableTwoFactorAuthentication(user);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/getTwoFactorSetup")
-    public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) throws QrGenerationException, MalformedURLException, URISyntaxException {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageSource.getMessage("userNotFound", null, localeResolver.resolveLocale(request))));
+    public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal) throws QrGenerationException, MalformedURLException, URISyntaxException {
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageService.getMessage("userNotFound")));
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
-        userService.updateProfile(userPrincipal.getId(),user,localeResolver.resolveLocale(request));
+        userService.updateProfile(userPrincipal.getId(), user);
         QrData data = new QrData.Builder()
                 .label(user.getEmail())
                 .secret(user.getTwoFactorSecret())
@@ -102,8 +102,8 @@ public class UserController extends Controller {
     }
 
     @PostMapping("/getNewBackupCodes")
-    public ResponseEntity<?> getBackupCodes(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageSource.getMessage("userNotFound", null, localeResolver.resolveLocale(request))));
+    public ResponseEntity<?> getBackupCodes(@CurrentUser UserPrincipal userPrincipal) {
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageService.getMessage("userNotFound")));
         twoFactoryRecoveryCodeRepository.deleteAll(user.getTwoFactorRecoveryCodes());
         TwoFactorVerificationResponse twoFactorVerificationResponse = new TwoFactorVerificationResponse();
         RecoveryCodeGenerator recoveryCodeGenerator = new RecoveryCodeGenerator();
@@ -123,23 +123,23 @@ public class UserController extends Controller {
 
 
     @PostMapping("/getTwoFactorSetupSecret")
-    public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) throws MalformedURLException, URISyntaxException {
+    public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal) throws MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
-        userService.updateProfile(userPrincipal.getId(),user,localeResolver.resolveLocale(request));
+        userService.updateProfile(userPrincipal.getId(), user);
         emailService.sendSimpleMessage(
                 user.getEmail(),
-                messageSource.getMessage("twoFactorSetupEmailSubject", null, localeResolver.resolveLocale(request)),
+                messageService.getMessage("twoFactorSetupEmailSubject"),
                 String.format("%s: %s. %s",
-                        messageSource.getMessage("twoFactorSetupEmailBodyKeyIsPrefix", null, localeResolver.resolveLocale(request)),
+                        messageService.getMessage("twoFactorSetupEmailBodyKeyIsPrefix"),
                         user.getTwoFactorSecret(),
-                        messageSource.getMessage("twoFactorSetupEmailBodyEnterKeyPrefix", null, localeResolver.resolveLocale(request)))
+                        messageService.getMessage("twoFactorSetupEmailBodyEnterKeyPrefix"))
         );
-        return ResponseEntity.ok().body(new ApiResponse(true, messageSource.getMessage("twoFactorSetupKeyWasSend", null, localeResolver.resolveLocale(request))));
+        return ResponseEntity.ok().body(new ApiResponse(true, messageService.getMessage("twoFactorSetupKeyWasSend")));
     }
 
     @PostMapping("/verifyTwoFactor")
-    public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequest twoFactorVerificationRequest, HttpServletRequest request) {
+    public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequest twoFactorVerificationRequest) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
@@ -162,7 +162,7 @@ public class UserController extends Controller {
             twoFactorVerificationResponse.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
             return ResponseEntity.ok().body(twoFactorVerificationResponse);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageSource.getMessage("invalidVerificationCode", null, localeResolver.resolveLocale(request))));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageService.getMessage("invalidVerificationCode")));
         }
     }
 
@@ -173,7 +173,7 @@ public class UserController extends Controller {
         if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getUser().getId().equals(user.getId())) {
             tokenRepository.delete(optionalRefreshToken.get());
             response.addCookie(userService.createEmptyRefreshTokenCookie());
-            return ResponseEntity.ok(new ApiResponse(true, messageSource.getMessage("loggedOut", null, localeResolver.resolveLocale(request))));
+            return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("loggedOut")));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
