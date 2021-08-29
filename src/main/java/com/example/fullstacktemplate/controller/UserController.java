@@ -1,7 +1,7 @@
 package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.dto.*;
-import com.example.fullstacktemplate.exception.UserNotFoundException;
+import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.mapper.UserMapper;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TwoFactorRecoveryCode;
@@ -16,7 +16,6 @@ import dev.samstevens.totp.qr.ZxingPngQrGenerator;
 import dev.samstevens.totp.recovery.RecoveryCodeGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +46,7 @@ public class UserController extends Controller {
     public UserDto getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
         return userService.findById(userPrincipal.getId())
                 .map(userMapper::toDto)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new BadRequestException("userNotFound"));
     }
 
     @PutMapping("/update-profile")
@@ -57,14 +56,14 @@ public class UserController extends Controller {
     }
 
     @PostMapping("/cancel-account")
-    public ResponseEntity<?> cancelAccount(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request) {
+    public ResponseEntity<?> cancelAccount(@CurrentUser UserPrincipal userPrincipal) {
         userService.cancelUserAccount(userPrincipal.getId());
         return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("accountCancelled")));
     }
 
     @PostMapping("/changePassword")
     public ResponseEntity<?> changePassword(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody ChangePasswordDto changePasswordDto) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user = userService.updatePassword(user, changePasswordDto);
         String accessToken = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
         AuthResponse authResponse = new AuthResponse();
@@ -76,14 +75,14 @@ public class UserController extends Controller {
 
     @PutMapping("/disable-two-factor")
     public ResponseEntity<?> disableTwoFactor(@CurrentUser UserPrincipal userPrincipal) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         userService.disableTwoFactorAuthentication(user);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/getTwoFactorSetup")
     public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal) throws QrGenerationException, MalformedURLException, URISyntaxException {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageService.getMessage("userNotFound")));
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         userService.updateProfile(userPrincipal.getId(), user);
         QrData data = new QrData.Builder()
@@ -103,7 +102,7 @@ public class UserController extends Controller {
 
     @PostMapping("/getNewBackupCodes")
     public ResponseEntity<?> getBackupCodes(@CurrentUser UserPrincipal userPrincipal) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new IllegalStateException(messageService.getMessage("userNotFound")));
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         twoFactoryRecoveryCodeRepository.deleteAll(user.getTwoFactorRecoveryCodes());
         TwoFactorVerificationResponse twoFactorVerificationResponse = new TwoFactorVerificationResponse();
         RecoveryCodeGenerator recoveryCodeGenerator = new RecoveryCodeGenerator();
@@ -124,7 +123,7 @@ public class UserController extends Controller {
 
     @PostMapping("/getTwoFactorSetupSecret")
     public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal) throws MalformedURLException, URISyntaxException {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         userService.updateProfile(userPrincipal.getId(), user);
         emailService.sendSimpleMessage(
@@ -140,7 +139,7 @@ public class UserController extends Controller {
 
     @PostMapping("/verifyTwoFactor")
     public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequest twoFactorVerificationRequest) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
@@ -162,19 +161,19 @@ public class UserController extends Controller {
             twoFactorVerificationResponse.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
             return ResponseEntity.ok().body(twoFactorVerificationResponse);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, messageService.getMessage("invalidVerificationCode")));
+            throw new BadRequestException("invalidVerificationCode");
         }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@CurrentUser UserPrincipal userPrincipal, HttpServletRequest request, HttpServletResponse response) {
-        User user = userService.findById(userPrincipal.getId()).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         Optional<JwtToken> optionalRefreshToken = userService.getRefreshTokenFromRequest(request);
         if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getUser().getId().equals(user.getId())) {
             tokenRepository.delete(optionalRefreshToken.get());
             response.addCookie(userService.createEmptyRefreshTokenCookie());
             return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("loggedOut")));
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        throw new BadRequestException("tokenExpired");
     }
 }

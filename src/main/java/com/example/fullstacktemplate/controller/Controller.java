@@ -11,7 +11,6 @@ import com.example.fullstacktemplate.security.JwtTokenProvider;
 import com.example.fullstacktemplate.service.*;
 import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 
 public abstract class Controller {
@@ -80,36 +78,6 @@ public abstract class Controller {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(EmailInUseException.class)
-    public ApiResponse handleEmailInUseException() {
-        return new ApiResponse(false, messageService.getMessage("emailInUse"));
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(UsernameInUse.class)
-    public ApiResponse handleUsernameInUseException() {
-        return new ApiResponse(false, messageService.getMessage("usernameInUse"));
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(UserNotFoundException.class)
-    public ApiResponse handleUserNotFoundException() {
-        return new ApiResponse(false, messageService.getMessage("userNotFound"));
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(TokenExpiredException.class)
-    public ApiResponse handleTokenExpiredException() {
-        return new ApiResponse(false, messageService.getMessage("tokenExpired"));
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidTokenException.class)
-    public ApiResponse handleInvalidTokenException() {
-        return new ApiResponse(false, messageService.getMessage("invalidToken"));
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadRequestException.class)
     public ApiResponse handleBadRequestException(BadRequestException ex) {
         return new ApiResponse(false, messageService.getMessage(ex.getLocalizedMessage()));
@@ -121,9 +89,9 @@ public abstract class Controller {
         return new ApiResponse(false, messageService.getMessage("invalidCredentials"));
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({Exception.class, RuntimeException.class})
-    public ApiResponse handleAnyException(HttpServletRequest request) {
+    public ApiResponse handleAnyException() {
         return new ApiResponse(false, messageService.getMessage("somethingWrong"));
     }
 
