@@ -2,6 +2,7 @@ spring:
   profiles:
     active: production
 ---
+
 spring:
   messages:
     basename: lang/res
@@ -61,5 +62,8 @@ spring:
     password: ${MAIL_SERVER_PASSWORD}
 app:
   appName: FullStack template
-
+  max-request-size: 200000000 # 200 MB
+server:
+  tomcat:
+    connection-timeout: 5s
 

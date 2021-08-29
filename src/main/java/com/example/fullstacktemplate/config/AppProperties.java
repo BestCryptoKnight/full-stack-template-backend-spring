@@ -22,6 +22,7 @@ public class AppProperties {
     private String emailChangeConfirmationUri;
     private String passwordResetUri;
     private String appName;
+    private int maxRequestSize;
 
     public static class Auth {
         private String tokenSecret;
