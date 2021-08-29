@@ -4,7 +4,8 @@ import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ChangePasswordDto;
 import com.example.fullstacktemplate.dto.SignUpRequest;
 import com.example.fullstacktemplate.dto.TokenAccessRequest;
-import com.example.fullstacktemplate.exception.*;
+import com.example.fullstacktemplate.exception.BadRequestException;
+import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.model.AuthProvider;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TokenType;
@@ -29,7 +30,6 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -144,7 +144,7 @@ public class UserService {
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
             if (!jwtTokenProvider.validateToken(tokenAccessRequest.getToken())) {
-                throw new TokenExpiredException();
+                throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmailVerified(true);
                 userRepository.save(user);
@@ -152,7 +152,7 @@ public class UserService {
             }
             return userRepository.save(user);
         }
-        throw new InvalidTokenException();
+        throw new BadRequestException("invalidToken");
     }
 
     public User disableTwoFactorAuthentication(User user) {
@@ -172,7 +172,7 @@ public class UserService {
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
             if (!jwtTokenProvider.validateToken(tokenAccessRequest.getToken())) {
-                throw new TokenExpiredException();
+                throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmail(user.getRequestedNewEmail());
                 user.setRequestedNewEmail(null);
@@ -181,16 +181,16 @@ public class UserService {
                 return user;
             }
         }
-        throw new InvalidTokenException();
+        throw new BadRequestException("invalidToken");
     }
 
     public User updateProfile(Long currentUserId, User newUser) throws MalformedURLException, URISyntaxException {
-        User user = findById(currentUserId).orElseThrow(UserNotFoundException::new);
+        User user = findById(currentUserId).orElseThrow(()->new BadRequestException("userNotFound"));
         if (!newUser.getEmail().equals(user.getEmail()) && isEmailUsed(newUser.getEmail())) {
-            throw new EmailInUseException();
+            throw new BadRequestException("emailInUse");
         }
         if (!newUser.getName().equals(user.getName()) && isUsernameUsed(newUser.getName())) {
-            throw new UsernameInUse();
+            throw new BadRequestException("usernameInUse");
         }
         String newEmail = newUser.getRequestedNewEmail();
         if (user.getRequestedNewEmail() != null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {

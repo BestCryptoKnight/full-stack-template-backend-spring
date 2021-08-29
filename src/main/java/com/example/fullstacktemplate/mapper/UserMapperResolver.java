@@ -1,6 +1,6 @@
 package com.example.fullstacktemplate.mapper;
 
-import com.example.fullstacktemplate.exception.UserNotFoundException;
+import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.service.UserService;
 import org.mapstruct.ObjectFactory;
@@ -19,6 +19,6 @@ public class UserMapperResolver {
 
     @ObjectFactory
     public User resolve(Long id){
-        return userService.findById(id).orElseThrow(UserNotFoundException::new);
+        return userService.findById(id).orElseThrow(()->new BadRequestException("userNotFound"));
     }
 }

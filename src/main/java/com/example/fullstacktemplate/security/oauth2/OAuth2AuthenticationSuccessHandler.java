@@ -2,7 +2,6 @@ package com.example.fullstacktemplate.security.oauth2;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.exception.BadRequestException;
-import com.example.fullstacktemplate.exception.UserNotFoundException;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.User;
@@ -87,7 +86,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
-        User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(UserNotFoundException::new);
+        User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(()->new BadRequestException("userNotFound"));
         String refreshTokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS));
         JwtToken refreshToken = tokenRepository.save(userService.createToken(user, refreshTokenValue, TokenType.REFRESH));
         response.addCookie(userService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));

@@ -1,6 +1,6 @@
 package com.example.fullstacktemplate.service;
 
-import com.example.fullstacktemplate.exception.UserNotFoundException;
+import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.TwoFactoryRecoveryCodeRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
@@ -27,7 +27,7 @@ public class AuthenticationService {
     }
 
     public boolean isVerificationCodeValid(Long userId, String verificationCode) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findById(userId).orElseThrow(()->new BadRequestException("userNotFound"));
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
@@ -35,7 +35,7 @@ public class AuthenticationService {
     }
 
     public boolean isRecoveryCodeValid(Long userId, String recoveryCode) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findById(userId).orElseThrow(()->new BadRequestException("userNotFound"));
         return user.getTwoFactorRecoveryCodes()
                 .stream()
                 .anyMatch(twoFactorRecoveryCode -> recoveryCode.equals(twoFactorRecoveryCode.getRecoveryCode()));

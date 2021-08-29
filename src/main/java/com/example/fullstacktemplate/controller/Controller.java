@@ -2,7 +2,8 @@ package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ApiResponse;
-import com.example.fullstacktemplate.exception.*;
+import com.example.fullstacktemplate.exception.BadRequestException;
+import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.repository.FileRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.TwoFactoryRecoveryCodeRepository;

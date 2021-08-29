@@ -1,7 +1,6 @@
 package com.example.fullstacktemplate.security;
 
-import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
-import com.example.fullstacktemplate.exception.UserNotFoundException;
+import com.example.fullstacktemplate.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
             Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
             UserDetails userDetails = customUserDetailsService.loadUserById(userId)
-                    .orElseThrow(UserNotFoundException::new);
+                    .orElseThrow(()->new BadRequestException("userNotFound"));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
