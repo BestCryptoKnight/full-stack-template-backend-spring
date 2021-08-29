@@ -2,13 +2,15 @@ package com.example.fullstacktemplate.security.oauth2;
 
 import com.example.fullstacktemplate.exception.OAuth2AuthenticationProcessingException;
 import com.example.fullstacktemplate.model.AuthProvider;
+import com.example.fullstacktemplate.model.FileType;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.security.UserPrincipal;
 import com.example.fullstacktemplate.security.oauth2.user.OAuth2UserInfo;
 import com.example.fullstacktemplate.security.oauth2.user.OAuth2UserInfoFactory;
-import com.example.fullstacktemplate.service.FileStorageService;
+import com.example.fullstacktemplate.service.FileDbService;
 import dev.samstevens.totp.secret.SecretGenerator;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -30,7 +32,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private FileStorageService fileStorageService;
+    private FileDbService fileDbService;
 
     @Autowired
     private SecretGenerator twoFactorSecretGenerator;
@@ -78,13 +80,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setEmail(oAuth2UserInfo.getEmail());
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         user.setTwoFactorEnabled(false);
-        user.setProfileImage(fileStorageService.store("profile_image.png", new URL(oAuth2UserInfo.getImageUrl())));
+        URL url = new URL(oAuth2UserInfo.getImageUrl());
+        user.setProfileImage(fileDbService.save("profile_image.png", FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url)));
         return userRepository.save(user);
     }
 
     private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) throws IOException {
         existingUser.setName(oAuth2UserInfo.getName());
-        existingUser.setProfileImage(fileStorageService.store("profile_image.png", new URL(oAuth2UserInfo.getImageUrl())));
+        URL url = new URL(oAuth2UserInfo.getImageUrl());
+        existingUser.setProfileImage(fileDbService.save("profile_image.png",  FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url)));
         return userRepository.save(existingUser);
     }
 

@@ -15,7 +15,7 @@ public class FileDb {
 
     }
 
-    public FileDb(String name, String type, byte[] data) {
+    public FileDb(String name, FileType type, byte[] data) {
         this.name = name;
         this.type = type;
         this.data = data;
@@ -27,8 +27,10 @@ public class FileDb {
 
     private String name;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private FileType type;
 
     @Lob
+    @Column(length = 20971520)
     private byte[] data;
 }

@@ -2,7 +2,7 @@ package com.example.fullstacktemplate;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.model.*;
-import com.example.fullstacktemplate.repository.FileRepository;
+import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.security.JwtTokenProvider;
@@ -34,13 +34,13 @@ public class SpringSocialApplication {
     /**
      * Fills the application with data
      *
-     * @param fileRepository
+     * @param fileDbRepository
      * @return
      */
     @Bean
     public ApplicationRunner initializer
     (
-            FileRepository fileRepository,
+            FileDbRepository fileDbRepository,
             UserService userService,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -59,7 +59,7 @@ public class SpringSocialApplication {
             for (Integer i = 1; i <= 10; i++) {
                 String suffix = i == 1 ? "" : i.toString();
                InputStream inputStream = resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream();
-                FileDb fileDb = new FileDb("blank-profile-picture.png", "image/png", inputStream.readAllBytes());
+                FileDb fileDb = new FileDb("blank-profile-picture.png", FileType.IMAGE_PNG, inputStream.readAllBytes());
                 fileDb.setId((long) i);
                 files.add(fileDb);
                 User user = new User();
@@ -90,7 +90,7 @@ public class SpringSocialApplication {
                 }*/
 
             }
-            fileRepository.saveAll(files);
+            fileDbRepository.saveAll(files);
             userRepository.saveAll(users);
             tokenRepository.saveAll(tokens);
 

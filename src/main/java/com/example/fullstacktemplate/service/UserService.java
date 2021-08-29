@@ -6,11 +6,8 @@ import com.example.fullstacktemplate.dto.SignUpRequest;
 import com.example.fullstacktemplate.dto.TokenAccessRequest;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
-import com.example.fullstacktemplate.model.AuthProvider;
-import com.example.fullstacktemplate.model.JwtToken;
-import com.example.fullstacktemplate.model.TokenType;
-import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.repository.FileRepository;
+import com.example.fullstacktemplate.model.*;
+import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.security.JwtTokenProvider;
@@ -37,7 +34,7 @@ import java.util.Optional;
 public class UserService {
     public static final String REFRESH_TOKEN_COOKIE_NAME = "rt_cookie";
     private final PasswordEncoder passwordEncoder;
-    private final FileStorageService fileStorageService;
+    private final FileDbService fileDbService;
     private final SecretGenerator twoFactorSecretGenerator;
     private final TokenRepository tokenRepository;
     private final AppProperties appProperties;
@@ -45,12 +42,12 @@ public class UserService {
     private final ResourceLoader resourceLoader;
     private final UserRepository userRepository;
     private final EmailService emailService;
-    private final FileRepository fileRepository;
+    private final FileDbRepository fileDbRepository;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, FileStorageService fileStorageService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileRepository fileRepository) {
+    public UserService(PasswordEncoder passwordEncoder, FileDbService fileDbService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileDbRepository fileDbRepository) {
         this.passwordEncoder = passwordEncoder;
-        this.fileStorageService = fileStorageService;
+        this.fileDbService = fileDbService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
         this.appProperties = appProperties;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -58,7 +55,7 @@ public class UserService {
         this.resourceLoader = resourceLoader;
         this.userRepository = userRepository;
         this.emailService = emailService;
-        this.fileRepository = fileRepository;
+        this.fileDbRepository = fileDbRepository;
     }
 
     public JwtToken createToken(User user, String value, TokenType tokenType) {
@@ -78,7 +75,7 @@ public class UserService {
         user.setProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setTwoFactorEnabled(false);
-        user.setProfileImage(fileStorageService.store(resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream(), "blank-profile-picture.png", "image/png"));
+        user.setProfileImage(fileDbService.save("blank-profile-picture.png", FileType.IMAGE_PNG, resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream().readAllBytes()));
         return userRepository.save(user);
     }
 
@@ -185,7 +182,7 @@ public class UserService {
     }
 
     public User updateProfile(Long currentUserId, User newUser) throws MalformedURLException, URISyntaxException {
-        User user = findById(currentUserId).orElseThrow(()->new BadRequestException("userNotFound"));
+        User user = findById(currentUserId).orElseThrow(() -> new BadRequestException("userNotFound"));
         if (!newUser.getEmail().equals(user.getEmail()) && isEmailUsed(newUser.getEmail())) {
             throw new BadRequestException("emailInUse");
         }

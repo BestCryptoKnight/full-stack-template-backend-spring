@@ -7,7 +7,7 @@ import com.example.fullstacktemplate.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring",uses = UserMapperResolver.class)
+@Mapper(componentModel = "spring",uses = {UserMapperResolver.class,FileDbMapper.class})
 public interface UserMapper extends CustomMapper<UserDto, User> {
 
     @Override

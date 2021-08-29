@@ -4,13 +4,14 @@ import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ApiResponse;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
-import com.example.fullstacktemplate.repository.FileRepository;
+import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.TwoFactoryRecoveryCodeRepository;
 import com.example.fullstacktemplate.security.CustomUserDetailsService;
 import com.example.fullstacktemplate.security.JwtTokenProvider;
 import com.example.fullstacktemplate.service.*;
 import dev.samstevens.totp.secret.SecretGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class Controller {
 
 
@@ -44,7 +46,7 @@ public abstract class Controller {
     protected TokenRepository tokenRepository;
 
     @Autowired
-    protected FileStorageService storageService;
+    protected FileDbService storageService;
 
     @Autowired
     protected AppProperties appProperties;
@@ -65,7 +67,7 @@ public abstract class Controller {
     protected MessageService messageService;
 
     @Autowired
-    protected FileRepository fileRepository;
+    protected FileDbRepository fileDbRepository;
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -92,7 +94,8 @@ public abstract class Controller {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({Exception.class, RuntimeException.class})
-    public ApiResponse handleAnyException() {
+    public ApiResponse handleAnyException(Exception e) {
+        log.error("Error while processing exception",e);
         return new ApiResponse(false, messageService.getMessage("somethingWrong"));
     }
 
