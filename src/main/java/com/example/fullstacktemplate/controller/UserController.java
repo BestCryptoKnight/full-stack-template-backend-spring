@@ -61,7 +61,7 @@ public class UserController extends Controller {
         return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("accountCancelled")));
     }
 
-    @PostMapping("/changePassword")
+    @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody ChangePasswordDto changePasswordDto) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user = userService.updatePassword(user, changePasswordDto);
@@ -80,7 +80,7 @@ public class UserController extends Controller {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/getTwoFactorSetup")
+    @PostMapping("/two-factor-setup")
     public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal) throws QrGenerationException, MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
@@ -100,7 +100,7 @@ public class UserController extends Controller {
         return ResponseEntity.ok().body(twoFactorResponse);
     }
 
-    @PostMapping("/getNewBackupCodes")
+    @PostMapping("/new-backup-codes")
     public ResponseEntity<?> getBackupCodes(@CurrentUser UserPrincipal userPrincipal) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         twoFactoryRecoveryCodeRepository.deleteAll(user.getTwoFactorRecoveryCodes());
@@ -121,7 +121,7 @@ public class UserController extends Controller {
     }
 
 
-    @PostMapping("/getTwoFactorSetupSecret")
+    @PostMapping("/two-factor-setup-secret")
     public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal) throws MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
@@ -137,7 +137,7 @@ public class UserController extends Controller {
         return ResponseEntity.ok().body(new ApiResponse(true, messageService.getMessage("twoFactorSetupKeyWasSend")));
     }
 
-    @PostMapping("/verifyTwoFactor")
+    @PostMapping("/verify-two-factor")
     public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequest twoFactorVerificationRequest) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         TimeProvider timeProvider = new SystemTimeProvider();

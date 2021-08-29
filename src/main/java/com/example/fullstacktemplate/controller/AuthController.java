@@ -109,7 +109,7 @@ public class AuthController extends Controller {
                 .body(new ApiResponse(true, messageService.getMessage("userWasRegistered")));
     }
 
-    @PostMapping("/activateAccount")
+    @PostMapping("/activate-account")
     public ResponseEntity<?> activateUserAccount(@Valid @RequestBody TokenAccessRequest tokenAccessRequest) {
         userService.activateUserAccount(tokenAccessRequest);
         return ResponseEntity.ok()
@@ -124,7 +124,7 @@ public class AuthController extends Controller {
 
     }
 
-    @PostMapping("/forgottenPassword")
+    @PostMapping("/forgotten-password")
     public ResponseEntity<?> forgottenPassword(@Valid @RequestBody ForgottenPasswordRequest
                                                        forgottenPasswordRequest) throws MalformedURLException, URISyntaxException {
         User user = userService.findByEmail(forgottenPasswordRequest.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
@@ -140,7 +140,7 @@ public class AuthController extends Controller {
         }
     }
 
-    @PostMapping("/passwordReset")
+    @PostMapping("/password-reset")
     public ResponseEntity<?> passwordReset(@Valid @RequestBody PasswordResetRequest passwordResetRequest) {
         User user = userService.findByEmail(passwordResetRequest.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
         Optional<JwtToken> optionalForgottenPassword = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
