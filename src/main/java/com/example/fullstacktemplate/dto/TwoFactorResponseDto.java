@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TwoFactorResponse {
+public class TwoFactorResponseDto {
 
     private byte[] qrData;
     private String mimeType;

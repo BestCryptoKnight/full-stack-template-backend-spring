@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TwoFactorVerificationRequest {
+public class TwoFactorVerificationRequestDto {
     private String code;
 
 }

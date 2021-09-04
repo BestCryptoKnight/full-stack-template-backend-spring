@@ -2,8 +2,8 @@ package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ChangePasswordDto;
-import com.example.fullstacktemplate.dto.SignUpRequest;
-import com.example.fullstacktemplate.dto.TokenAccessRequest;
+import com.example.fullstacktemplate.dto.SignUpRequestDto;
+import com.example.fullstacktemplate.dto.TokenAccessRequestDto;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.model.*;
@@ -66,12 +66,12 @@ public class UserService {
         return tokenRepository.save(jwtToken);
     }
 
-    public User createNewUser(SignUpRequest signUpRequest) throws IOException {
+    public User createNewUser(SignUpRequestDto signUpRequestDto) throws IOException {
         User user = new User();
         user.setEmailVerified(false);
-        user.setName(signUpRequest.getName());
-        user.setEmail(signUpRequest.getEmail());
-        user.setPassword(signUpRequest.getPassword());
+        user.setName(signUpRequestDto.getName());
+        user.setEmail(signUpRequestDto.getEmail());
+        user.setPassword(signUpRequestDto.getPassword());
         user.setProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setTwoFactorEnabled(false);
@@ -136,11 +136,11 @@ public class UserService {
     }
 
 
-    public User activateUserAccount(TokenAccessRequest tokenAccessRequest) {
-        Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequest.getToken(), TokenType.ACCOUNT_ACTIVATION);
+    public User activateUserAccount(TokenAccessRequestDto tokenAccessRequestDto) {
+        Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequestDto.getToken(), TokenType.ACCOUNT_ACTIVATION);
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
-            if (!jwtTokenProvider.validateToken(tokenAccessRequest.getToken())) {
+            if (!jwtTokenProvider.validateToken(tokenAccessRequestDto.getToken())) {
                 throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmailVerified(true);
@@ -164,11 +164,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User activateRequestedEmail(TokenAccessRequest tokenAccessRequest) {
-        Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequest.getToken(), TokenType.EMAIL_UPDATE);
+    public User activateRequestedEmail(TokenAccessRequestDto tokenAccessRequestDto) {
+        Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequestDto.getToken(), TokenType.EMAIL_UPDATE);
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
-            if (!jwtTokenProvider.validateToken(tokenAccessRequest.getToken())) {
+            if (!jwtTokenProvider.validateToken(tokenAccessRequestDto.getToken())) {
                 throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmail(user.getRequestedNewEmail());

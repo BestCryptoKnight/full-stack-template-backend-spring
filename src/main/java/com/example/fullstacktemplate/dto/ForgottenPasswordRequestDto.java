@@ -8,12 +8,10 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class LoginRequest {
-    @NotBlank(message = "email.blank")
-    @Email(message = "email.invalidFormat")
+public class ForgottenPasswordRequestDto {
+
+    @NotBlank(message = "{email.notEmpty}")
+    @Email
     private String email;
 
-    @NotBlank(message = "password.blank")
-    private String password;
-    private Boolean rememberMe;
 }

@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class TokenAccessRequest {
+public class TokenAccessRequestDto {
 
     @NotBlank(message = "token.blank")
     private String token;

@@ -5,9 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TokenResponse {
+public class TokenResponseDto {
 
-    public TokenResponse(String accessToken) {
+    public TokenResponseDto(String accessToken) {
         this.accessToken = accessToken;
     }
 

@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AuthResponse {
+public class AuthResponseDto {
     private String accessToken;
     private Boolean twoFactorRequired;
     private String tokenType = "Bearer";

@@ -1,8 +1,8 @@
 package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.dto.ForgottenPasswordRequest;
-import com.example.fullstacktemplate.dto.SignUpRequest;
+import com.example.fullstacktemplate.dto.ForgottenPasswordRequestDto;
+import com.example.fullstacktemplate.dto.SignUpRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +40,11 @@ public class EmailService {
 
     }
 
-    public void sendAccountActivationMessage(SignUpRequest signUpRequest, String token) throws URISyntaxException, MalformedURLException {
+    public void sendAccountActivationMessage(SignUpRequestDto signUpRequestDto, String token) throws URISyntaxException, MalformedURLException {
         URIBuilder uriBuilder = new URIBuilder(appProperties.getAccountActivationUri())
                 .addParameter("token", token);
         this.sendSimpleMessage(
-                signUpRequest.getEmail(),
+                signUpRequestDto.getEmail(),
                 appProperties.getAppName() + " " + messageService.getMessage("activateAccountEmailSubject"),
                 String.format("%s %s", messageService.getMessage("activateAccountEmailBody"), uriBuilder.build().toURL().toString())
         );
@@ -60,12 +60,12 @@ public class EmailService {
         );
     }
 
-    public void sendPasswordResetMessage(ForgottenPasswordRequest forgottenPasswordRequest, String token) throws URISyntaxException, MalformedURLException {
+    public void sendPasswordResetMessage(ForgottenPasswordRequestDto forgottenPasswordRequestDto, String token) throws URISyntaxException, MalformedURLException {
         URIBuilder uriBuilder = new URIBuilder(appProperties.getPasswordResetUri())
-                .addParameter("email", forgottenPasswordRequest.getEmail())
+                .addParameter("email", forgottenPasswordRequestDto.getEmail())
                 .addParameter("token", token);
         this.sendSimpleMessage(
-                forgottenPasswordRequest.getEmail(),
+                forgottenPasswordRequestDto.getEmail(),
                 appProperties.getAppName() + " " + messageService.getMessage("passwordResetEmailSubject"),
                 String.format("%s %s", messageService.getMessage("passwordResetEmailBody"), uriBuilder.build().toURL().toString())
         );

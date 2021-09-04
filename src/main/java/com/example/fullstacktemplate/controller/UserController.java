@@ -58,7 +58,7 @@ public class UserController extends Controller {
     @PostMapping("/cancel-account")
     public ResponseEntity<?> cancelAccount(@CurrentUser UserPrincipal userPrincipal) {
         userService.cancelUserAccount(userPrincipal.getId());
-        return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("accountCancelled")));
+        return ResponseEntity.ok(new ApiResponseDto(true, messageService.getMessage("accountCancelled")));
     }
 
     @PostMapping("/change-password")
@@ -66,11 +66,11 @@ public class UserController extends Controller {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user = userService.updatePassword(user, changePasswordDto);
         String accessToken = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setTwoFactorRequired(false);
-        authResponse.setAccessToken(accessToken);
-        authResponse.setMessage(messageService.getMessage("passwordUpdated"));
-        return ResponseEntity.ok(authResponse);
+        AuthResponseDto authResponseDto = new AuthResponseDto();
+        authResponseDto.setTwoFactorRequired(false);
+        authResponseDto.setAccessToken(accessToken);
+        authResponseDto.setMessage(messageService.getMessage("passwordUpdated"));
+        return ResponseEntity.ok(authResponseDto);
     }
 
     @PutMapping("/disable-two-factor")
@@ -94,17 +94,17 @@ public class UserController extends Controller {
                 .period(30)
                 .build();
         QrGenerator generator = new ZxingPngQrGenerator();
-        TwoFactorResponse twoFactorResponse = new TwoFactorResponse();
-        twoFactorResponse.setQrData(generator.generate(data));
-        twoFactorResponse.setMimeType(generator.getImageMimeType());
-        return ResponseEntity.ok().body(twoFactorResponse);
+        TwoFactorResponseDto twoFactorResponseDto = new TwoFactorResponseDto();
+        twoFactorResponseDto.setQrData(generator.generate(data));
+        twoFactorResponseDto.setMimeType(generator.getImageMimeType());
+        return ResponseEntity.ok().body(twoFactorResponseDto);
     }
 
     @PostMapping("/new-backup-codes")
     public ResponseEntity<?> getBackupCodes(@CurrentUser UserPrincipal userPrincipal) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         twoFactoryRecoveryCodeRepository.deleteAll(user.getTwoFactorRecoveryCodes());
-        TwoFactorVerificationResponse twoFactorVerificationResponse = new TwoFactorVerificationResponse();
+        TwoFactorVerificationResponseDto twoFactorVerificationResponseDto = new TwoFactorVerificationResponseDto();
         RecoveryCodeGenerator recoveryCodeGenerator = new RecoveryCodeGenerator();
         List<TwoFactorRecoveryCode> twoFactorRecoveryCodes = Arrays.asList(recoveryCodeGenerator.generateCodes(16))
                 .stream()
@@ -116,8 +116,8 @@ public class UserController extends Controller {
                 })
                 .collect(Collectors.toList());
         twoFactorRecoveryCodes = twoFactoryRecoveryCodeRepository.saveAll(twoFactorRecoveryCodes);
-        twoFactorVerificationResponse.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
-        return ResponseEntity.ok().body(twoFactorVerificationResponse);
+        twoFactorVerificationResponseDto.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
+        return ResponseEntity.ok().body(twoFactorVerificationResponseDto);
     }
 
 
@@ -134,19 +134,19 @@ public class UserController extends Controller {
                         user.getTwoFactorSecret(),
                         messageService.getMessage("twoFactorSetupEmailBodyEnterKeyPrefix"))
         );
-        return ResponseEntity.ok().body(new ApiResponse(true, messageService.getMessage("twoFactorSetupKeyWasSend")));
+        return ResponseEntity.ok().body(new ApiResponseDto(true, messageService.getMessage("twoFactorSetupKeyWasSend")));
     }
 
     @PostMapping("/verify-two-factor")
-    public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequest twoFactorVerificationRequest) {
+    public ResponseEntity<?> verifyTwoFactor(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody TwoFactorVerificationRequestDto twoFactorVerificationRequestDto) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
         RecoveryCodeGenerator recoveryCodeGenerator = new RecoveryCodeGenerator();
-        if (verifier.isValidCode(user.getTwoFactorSecret(), twoFactorVerificationRequest.getCode())) {
+        if (verifier.isValidCode(user.getTwoFactorSecret(), twoFactorVerificationRequestDto.getCode())) {
             user = userService.enableTwoFactorAuthentication(user);
-            TwoFactorVerificationResponse twoFactorVerificationResponse = new TwoFactorVerificationResponse();
+            TwoFactorVerificationResponseDto twoFactorVerificationResponseDto = new TwoFactorVerificationResponseDto();
             User finalUser = user;
             List<TwoFactorRecoveryCode> twoFactorRecoveryCodes = Arrays.asList(recoveryCodeGenerator.generateCodes(16))
                     .stream()
@@ -158,8 +158,8 @@ public class UserController extends Controller {
                     })
                     .collect(Collectors.toList());
             twoFactorRecoveryCodes = twoFactoryRecoveryCodeRepository.saveAll(twoFactorRecoveryCodes);
-            twoFactorVerificationResponse.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
-            return ResponseEntity.ok().body(twoFactorVerificationResponse);
+            twoFactorVerificationResponseDto.setVerificationCodes(twoFactorRecoveryCodes.stream().map(TwoFactorRecoveryCode::getRecoveryCode).collect(Collectors.toList()));
+            return ResponseEntity.ok().body(twoFactorVerificationResponseDto);
         } else {
             throw new BadRequestException("invalidVerificationCode");
         }
@@ -172,7 +172,7 @@ public class UserController extends Controller {
         if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getUser().getId().equals(user.getId())) {
             tokenRepository.delete(optionalRefreshToken.get());
             response.addCookie(userService.createEmptyRefreshTokenCookie());
-            return ResponseEntity.ok(new ApiResponse(true, messageService.getMessage("loggedOut")));
+            return ResponseEntity.ok(new ApiResponseDto(true, messageService.getMessage("loggedOut")));
         }
         throw new BadRequestException("tokenExpired");
     }

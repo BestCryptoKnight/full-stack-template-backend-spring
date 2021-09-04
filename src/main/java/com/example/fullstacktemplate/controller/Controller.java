@@ -1,7 +1,7 @@
 package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.config.AppProperties;
-import com.example.fullstacktemplate.dto.ApiResponse;
+import com.example.fullstacktemplate.dto.ApiResponseDto;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.repository.FileDbRepository;
@@ -71,9 +71,9 @@ public abstract class Controller {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ApiResponse handleValidationExceptions(
+    public ApiResponseDto handleValidationExceptions(
             MethodArgumentNotValidException ex) {
-        return new ApiResponse(false, ex.getBindingResult()
+        return new ApiResponseDto(false, ex.getBindingResult()
                 .getAllErrors()
                 .stream()
                 .map((error) -> messageService.getMessage(error.getDefaultMessage()))
@@ -82,21 +82,21 @@ public abstract class Controller {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadRequestException.class)
-    public ApiResponse handleBadRequestException(BadRequestException ex) {
-        return new ApiResponse(false, messageService.getMessage(ex.getLocalizedMessage()));
+    public ApiResponseDto handleBadRequestException(BadRequestException ex) {
+        return new ApiResponseDto(false, messageService.getMessage(ex.getLocalizedMessage()));
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = {UnauthorizedRequestException.class, AuthenticationException.class})
-    public ApiResponse handleUnauthorized() {
-        return new ApiResponse(false, messageService.getMessage("invalidCredentials"));
+    public ApiResponseDto handleUnauthorized() {
+        return new ApiResponseDto(false, messageService.getMessage("invalidCredentials"));
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({Exception.class, RuntimeException.class})
-    public ApiResponse handleAnyException(Exception e) {
+    public ApiResponseDto handleAnyException(Exception e) {
         log.error("Error while processing exception",e);
-        return new ApiResponse(false, messageService.getMessage("somethingWrong"));
+        return new ApiResponseDto(false, messageService.getMessage("somethingWrong"));
     }
 
 }

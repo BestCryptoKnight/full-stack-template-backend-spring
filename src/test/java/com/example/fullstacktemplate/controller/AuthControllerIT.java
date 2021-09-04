@@ -100,11 +100,11 @@ public class AuthControllerIT {
         User user = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), true, false));
 
         MvcResult mvcResult = loginWithCredentials(EMAIL, VALID_PASSWORD);
-        AuthResponse authResponse = GSON.fromJson(mvcResult.getResponse().getContentAsString(), AuthResponse.class);
+        AuthResponseDto authResponseDto = GSON.fromJson(mvcResult.getResponse().getContentAsString(), AuthResponseDto.class);
 
         assertAll(
                 () -> assertEquals(200, mvcResult.getResponse().getStatus()),
-                () -> assertEquals(user.getId(), jwtTokenProvider.getUserIdFromToken(authResponse.getAccessToken()))
+                () -> assertEquals(user.getId(), jwtTokenProvider.getUserIdFromToken(authResponseDto.getAccessToken()))
 
         );
     }
@@ -114,11 +114,11 @@ public class AuthControllerIT {
         User user = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), true, false));
 
         MvcResult mvcResult = loginWithCredentials(EMAIL, VALID_PASSWORD, true);
-        AuthResponse authResponse = GSON.fromJson(mvcResult.getResponse().getContentAsString(), AuthResponse.class);
+        AuthResponseDto authResponseDto = GSON.fromJson(mvcResult.getResponse().getContentAsString(), AuthResponseDto.class);
 
         assertAll(
                 () -> assertEquals(200, mvcResult.getResponse().getStatus()),
-                () -> assertEquals(user.getId(), jwtTokenProvider.getUserIdFromToken(authResponse.getAccessToken()))
+                () -> assertEquals(user.getId(), jwtTokenProvider.getUserIdFromToken(authResponseDto.getAccessToken()))
 
         );
     }
@@ -127,7 +127,7 @@ public class AuthControllerIT {
     public void loginTest_invalidCredentials_ShouldNotLogIn() throws Exception {
         MvcResult mvcResult = loginWithCredentials(EMAIL, VALID_PASSWORD);
 
-        assertEndpointResult(mvcResult, 401, new ApiResponse(false, "Bad credentials"));
+        assertEndpointResult(mvcResult, 401, new ApiResponseDto(false, "Bad credentials"));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class AuthControllerIT {
         MvcResult mvcResult = activateAccount(EMAIL, token);
 
         assertAll(
-                () -> assertEndpointResult(mvcResult, 200, new ApiResponse(true, "Account has been activated")),
+                () -> assertEndpointResult(mvcResult, 200, new ApiResponseDto(true, "Account has been activated")),
                 () -> assertTrue(userRepository.findByEmail(EMAIL).get().getEmailVerified(), "User account has not been activated"),
                 () -> assertFalse(tokenRepository.findByUserAndTokenType(userWithoutActivatedAccount, TokenType.ACCOUNT_ACTIVATION).isPresent(), "Verification token has not been deleted")
 
@@ -155,7 +155,7 @@ public class AuthControllerIT {
 
         MvcResult mvcResult = activateAccount(EMAIL, token);
 
-        assertEndpointResult(mvcResult, 400, new ApiResponse(false, "Token is expired"));
+        assertEndpointResult(mvcResult, 400, new ApiResponseDto(false, "Token is expired"));
     }
 
     @Test
@@ -166,7 +166,7 @@ public class AuthControllerIT {
 
         MvcResult mvcResult = activateAccount(EMAIL, INVALID_VERIFICATION_TOKEN);
 
-        assertEndpointResult(mvcResult, 400, new ApiResponse(false, "Invalid jwtToken"));
+        assertEndpointResult(mvcResult, 400, new ApiResponseDto(false, "Invalid jwtToken"));
     }
 
     @Test
@@ -180,7 +180,7 @@ public class AuthControllerIT {
         Optional<MimeMessage> receivedMessage = Arrays.stream(receivedMessages).findFirst();
         Optional<User> optionalUser = userRepository.findByEmail(EMAIL);
         assertAll(
-                () -> assertEndpointResult(mvcResult, 201, new ApiResponse(true, "User registered successfully. Activate your account via email")),
+                () -> assertEndpointResult(mvcResult, 201, new ApiResponseDto(true, "User registered successfully. Activate your account via email")),
                 () -> assertEquals(1, receivedMessages.length),
                 () -> assertTrue(optionalUser.isPresent()),
                 () -> optionalUser.ifPresent(user -> {
@@ -207,12 +207,12 @@ public class AuthControllerIT {
         smtpServer.stop();
     }
 
-    private static LoginRequest createSignInRequest(String email, String password, Boolean rememberMe) {
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail(email);
-        loginRequest.setPassword(password);
-        loginRequest.setRememberMe(rememberMe);
-        return loginRequest;
+    private static LoginRequestDto createSignInRequest(String email, String password, Boolean rememberMe) {
+        LoginRequestDto loginRequestDto = new LoginRequestDto();
+        loginRequestDto.setEmail(email);
+        loginRequestDto.setPassword(password);
+        loginRequestDto.setRememberMe(rememberMe);
+        return loginRequestDto;
     }
 
     private static User createUser(String username, String email, String password, Boolean emailVerified, Boolean twoFactorEnabled) {
@@ -238,22 +238,22 @@ public class AuthControllerIT {
     }
 
     private MvcResult activateAccount(String email, String token) throws Exception {
-        TokenAccessRequest tokenAccessRequest = new TokenAccessRequest();
-        tokenAccessRequest.setToken(token);
+        TokenAccessRequestDto tokenAccessRequestDto = new TokenAccessRequestDto();
+        tokenAccessRequestDto.setToken(token);
         return mvc.perform(post("/auth/activateAccount")
                 .contentType("application/json")
-                .content(GSON.toJson(tokenAccessRequest)))
+                .content(GSON.toJson(tokenAccessRequestDto)))
                 .andReturn();
     }
 
     private MvcResult register(String name, String email, String password) throws Exception {
-        SignUpRequest signUpRequest = new SignUpRequest();
-        signUpRequest.setName(name);
-        signUpRequest.setEmail(email);
-        signUpRequest.setPassword(password);
+        SignUpRequestDto signUpRequestDto = new SignUpRequestDto();
+        signUpRequestDto.setName(name);
+        signUpRequestDto.setEmail(email);
+        signUpRequestDto.setPassword(password);
         return mvc.perform(post("/auth/signup")
                 .contentType("application/json")
-                .content(GSON.toJson(signUpRequest)))
+                .content(GSON.toJson(signUpRequestDto)))
                 .andReturn();
     }
 

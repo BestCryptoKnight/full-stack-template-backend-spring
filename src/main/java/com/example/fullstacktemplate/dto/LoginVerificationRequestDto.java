@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
-public class LoginVerificationRequest {
+public class LoginVerificationRequestDto {
 
     @Email(message = "email.invalidFormat")
     private String email;
