@@ -32,7 +32,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected ResourceBundleMessageSource messageSource;
 
     @Autowired
-    protected LocaleResolver localeResolver;
+    protected  LocaleResolver acceptHeaderLocaleResolver;
 
     private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 

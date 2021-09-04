@@ -23,12 +23,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     UserRepository userRepository;
 
     final
-    LocaleResolver localeResolver;
+     LocaleResolver acceptHeaderLocaleResolver;
 
     @Autowired
-    public CustomUserDetailsService(UserRepository userRepository, LocaleResolver localeResolver) {
+    public CustomUserDetailsService(UserRepository userRepository,  LocaleResolver acceptHeaderLocaleResolver) {
         this.userRepository = userRepository;
-        this.localeResolver = localeResolver;
+        this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
     }
 
     @Override

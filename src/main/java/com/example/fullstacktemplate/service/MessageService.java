@@ -14,18 +14,18 @@ import java.util.Optional;
 
 @Service
 public class MessageService {
-    private final LocaleResolver localeResolver;
+    private final  LocaleResolver acceptHeaderLocaleResolver;
     private final ResourceBundleMessageSource messageSource;
 
-    public MessageService(LocaleResolver localeResolver, ResourceBundleMessageSource messageSource) {
-        this.localeResolver = localeResolver;
+    public MessageService( LocaleResolver acceptHeaderLocaleResolver, ResourceBundleMessageSource messageSource) {
+        this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
         this.messageSource = messageSource;
     }
 
     private Locale getLocaleForCurrentRequest() {
         return Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .map(ServletRequestAttributes::getRequest)
-                .map(localeResolver::resolveLocale)
+                .map(acceptHeaderLocaleResolver::resolveLocale)
                 .orElse(Locale.getDefault());
     }
 

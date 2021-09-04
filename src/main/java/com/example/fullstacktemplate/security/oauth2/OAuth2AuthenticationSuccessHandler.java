@@ -36,7 +36,7 @@ import static com.example.fullstacktemplate.security.oauth2.HttpCookieOAuth2Auth
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final ResourceBundleMessageSource messageSource;
 
-    private final LocaleResolver localeResolver;
+    private final  LocaleResolver acceptHeaderLocaleResolver;
 
     private JwtTokenProvider jwtTokenProvider;
 
@@ -51,13 +51,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     @Autowired
     OAuth2AuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider, AppProperties appProperties,
-                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository, UserService userService, UserRepository userRepository, LocaleResolver localeResolver, ResourceBundleMessageSource messageSource, TokenRepository tokenRepository) {
+                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository, UserService userService, UserRepository userRepository,  LocaleResolver acceptHeaderLocaleResolver, ResourceBundleMessageSource messageSource, TokenRepository tokenRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.appProperties = appProperties;
         this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
         this.userService = userService;
         this.userRepository = userRepository;
-        this.localeResolver = localeResolver;
+        this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
         this.messageSource = messageSource;
         this.tokenRepository = tokenRepository;
     }
@@ -81,7 +81,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .map(Cookie::getValue);
 
         if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
-            throw new BadRequestException(messageSource.getMessage("o2authInvalidTargetUrl", null, localeResolver.resolveLocale(request)));
+            throw new BadRequestException(messageSource.getMessage("o2authInvalidTargetUrl", null, acceptHeaderLocaleResolver.resolveLocale(request)));
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());

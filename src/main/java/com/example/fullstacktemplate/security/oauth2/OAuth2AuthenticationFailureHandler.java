@@ -31,7 +31,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     protected ResourceBundleMessageSource messageSource;
 
     @Autowired
-    protected LocaleResolver localeResolver;
+    protected  LocaleResolver acceptHeaderLocaleResolver;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
