@@ -22,6 +22,6 @@ public class UserDto {
 
     private Boolean twoFactorEnabled;
 
-    private Boolean isO2authAccount;
+    private Boolean isO2AuthAccount;
 
 }

@@ -19,7 +19,7 @@ public interface UserMapper extends CustomMapper<UserDto, User> {
     User toEntity(Long id, UserDto dto);
 
     @Override
-    @Mapping(target = "isO2authAccount", source = "authProvider", qualifiedByName = "providerToIsO2AuthAccount")
+    @Mapping(target = "isO2AuthAccount", source = "authProvider", qualifiedByName = "providerToIsO2AuthAccount")
     UserDto toDto(User user);
 
     @Named("providerToIsO2AuthAccount")
