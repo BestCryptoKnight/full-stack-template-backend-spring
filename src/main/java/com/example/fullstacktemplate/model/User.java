@@ -36,10 +36,13 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private AuthProvider provider;
+    @Column(nullable = false)
+    private AuthProvider authProvider;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
+
     private String providerId;
     private String twoFactorSecret;
 
