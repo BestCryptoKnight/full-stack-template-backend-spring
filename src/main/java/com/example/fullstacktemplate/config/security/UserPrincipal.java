@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.config.security;
 
 import com.example.fullstacktemplate.model.User;
 import lombok.Data;

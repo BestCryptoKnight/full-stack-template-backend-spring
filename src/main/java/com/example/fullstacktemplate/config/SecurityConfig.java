@@ -1,12 +1,12 @@
 package com.example.fullstacktemplate.config;
 
-import com.example.fullstacktemplate.security.CustomUserDetailsService;
-import com.example.fullstacktemplate.security.RestAuthenticationEntryPoint;
-import com.example.fullstacktemplate.security.TokenAuthenticationFilter;
-import com.example.fullstacktemplate.security.oauth2.CustomOAuth2UserService;
-import com.example.fullstacktemplate.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
-import com.example.fullstacktemplate.security.oauth2.OAuth2AuthenticationFailureHandler;
-import com.example.fullstacktemplate.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.example.fullstacktemplate.service.CustomUserDetailsService;
+import com.example.fullstacktemplate.config.security.RestAuthenticationEntryPoint;
+import com.example.fullstacktemplate.config.security.TokenAuthenticationFilter;
+import com.example.fullstacktemplate.service.OAuth2UserService;
+import com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService;
+import com.example.fullstacktemplate.config.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.example.fullstacktemplate.config.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +26,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.GenericFilterBean;
-import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.filter.RequestContextFilter;
 
 import java.util.Arrays;
 
@@ -48,7 +45,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AppProperties appProperties;
 
     @Autowired
-    private CustomOAuth2UserService customOAuth2UserService;
+    private OAuth2UserService OAuth2UserService;
 
     @Autowired
     private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
@@ -57,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Autowired
-    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+    private CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
 
     @Bean
     public TokenAuthenticationFilter tokenAuthenticationFilter() {
@@ -65,8 +62,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
-        return new HttpCookieOAuth2AuthorizationRequestRepository();
+    public CookieOAuth2AuthorizationRequestService cookieAuthorizationRequestRepository() {
+        return new CookieOAuth2AuthorizationRequestService();
     }
 
     @Override
@@ -147,7 +144,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .baseUri("/oauth2/callback/*")
                 .and()
                 .userInfoEndpoint()
-                .userService(customOAuth2UserService)
+                .userService(OAuth2UserService)
                 .and()
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler);

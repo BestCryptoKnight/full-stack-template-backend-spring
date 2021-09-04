@@ -5,7 +5,7 @@ import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.security.UserPrincipal;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -57,9 +57,9 @@ public class AuthController extends Controller {
     public ResponseEntity<?> refreshAuth(HttpServletRequest request) {
         Optional<JwtToken> optionalRefreshToken = userService.getRefreshTokenFromRequest(request);
         if (optionalRefreshToken.isPresent()) {
-            Optional<User> optionalUser = userService.findById(jwtTokenProvider.getUserIdFromToken(optionalRefreshToken.get().getValue()));
+            Optional<User> optionalUser = userService.findById(jwtTokenService.getUserIdFromToken(optionalRefreshToken.get().getValue()));
             if (optionalUser.isPresent() && optionalRefreshToken.get().getUser().getId().equals(optionalUser.get().getId())) {
-                return ResponseEntity.ok(new TokenResponseDto(jwtTokenProvider.createTokenValue(optionalUser.get().getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS))));
+                return ResponseEntity.ok(new TokenResponseDto(jwtTokenService.createTokenValue(optionalUser.get().getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS))));
             }
         }
         throw new BadRequestException("tokenExpired");
@@ -99,7 +99,7 @@ public class AuthController extends Controller {
             throw new BadRequestException("usernameInUse");
         }
         User user = userService.createNewUser(signUpRequestDto);
-        String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
         tokenRepository.save(userService.createToken(user, tokenValue, TokenType.ACCOUNT_ACTIVATION));
         emailService.sendAccountActivationMessage(signUpRequestDto, tokenValue);
         URI location = ServletUriComponentsBuilder
@@ -129,7 +129,7 @@ public class AuthController extends Controller {
                                                        forgottenPasswordRequestDto) throws MalformedURLException, URISyntaxException {
         User user = userService.findByEmail(forgottenPasswordRequestDto.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
         if (user.getEmailVerified()) {
-            String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+            String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
             userService.createToken(user, tokenValue, TokenType.FORGOTTEN_PASSWORD);
             emailService.sendPasswordResetMessage(forgottenPasswordRequestDto, tokenValue);
             return ResponseEntity
@@ -146,7 +146,7 @@ public class AuthController extends Controller {
         Optional<JwtToken> optionalForgottenPassword = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
         if (!optionalForgottenPassword.isPresent() || !optionalForgottenPassword.get().getValue().equals(passwordResetRequestDto.getToken())) {
             throw new BadRequestException("invalidToken");
-        } else if (!jwtTokenProvider.validateToken(passwordResetRequestDto.getToken())) {
+        } else if (!jwtTokenService.validateToken(passwordResetRequestDto.getToken())) {
             throw new BadRequestException("tokenExpired");
         } else {
             userService.updateUserPassword(user, passwordResetRequestDto.getPassword());
@@ -157,11 +157,11 @@ public class AuthController extends Controller {
     }
 
     private AuthResponseDto getAuthResponse(User user, HttpServletResponse response) {
-        String accessToken = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String accessToken = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
         AuthResponseDto authResponseDto = new AuthResponseDto();
         authResponseDto.setTwoFactorRequired(user.getTwoFactorEnabled());
         authResponseDto.setAccessToken(accessToken);
-        String refreshTokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String refreshTokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS));
         JwtToken refreshToken = tokenRepository.save(userService.createToken(user, refreshTokenValue, TokenType.REFRESH));
         response.setHeader("Set-Cookie", REFRESH_TOKEN_COOKIE_NAME + "=" + refreshToken.getValue() + "; Path=/; HttpOnly; SameSite=Strict;");
         return authResponseDto;

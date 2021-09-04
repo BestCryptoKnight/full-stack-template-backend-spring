@@ -1,6 +1,8 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.config.security;
 
 import com.example.fullstacktemplate.exception.BadRequestException;
+import com.example.fullstacktemplate.service.CustomUserDetailsService;
+import com.example.fullstacktemplate.service.JwtTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,7 @@ import java.util.Optional;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtTokenService jwtTokenService;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -39,8 +41,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwt = getAccessJwtFromRequest(request).orElse(null);
-        if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
-            Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
+        if (jwt != null && jwtTokenService.validateToken(jwt)) {
+            Long userId = jwtTokenService.getUserIdFromToken(jwt);
             UserDetails userDetails = customUserDetailsService.loadUserById(userId)
                     .orElseThrow(()->new BadRequestException("userNotFound"));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

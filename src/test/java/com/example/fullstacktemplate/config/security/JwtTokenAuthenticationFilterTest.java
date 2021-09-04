@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.config.security;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

@@ -7,8 +7,8 @@ import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.TwoFactoryRecoveryCodeRepository;
-import com.example.fullstacktemplate.security.CustomUserDetailsService;
-import com.example.fullstacktemplate.security.JwtTokenProvider;
+import com.example.fullstacktemplate.service.CustomUserDetailsService;
+import com.example.fullstacktemplate.service.JwtTokenService;
 import com.example.fullstacktemplate.service.*;
 import dev.samstevens.totp.secret.SecretGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public abstract class Controller {
     protected PasswordEncoder passwordEncoder;
 
     @Autowired
-    protected JwtTokenProvider jwtTokenProvider;
+    protected JwtTokenService jwtTokenService;
 
     @Autowired
     protected EmailService emailService;

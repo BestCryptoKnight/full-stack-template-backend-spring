@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import io.jsonwebtoken.*;
@@ -10,13 +10,13 @@ import java.time.Duration;
 import java.util.Date;
 
 @Service
-public class JwtTokenProvider {
+public class JwtTokenService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
     private AppProperties appProperties;
 
-    public JwtTokenProvider(AppProperties appProperties) {
+    public JwtTokenService(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
 

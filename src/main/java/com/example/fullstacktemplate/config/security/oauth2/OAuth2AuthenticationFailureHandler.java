@@ -1,5 +1,6 @@
-package com.example.fullstacktemplate.security.oauth2;
+package com.example.fullstacktemplate.config.security.oauth2;
 
+import com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService;
 import com.example.fullstacktemplate.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -18,14 +19,14 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-import static com.example.fullstacktemplate.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.LANGUAGE_COOKIE_NAME;
-import static com.example.fullstacktemplate.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
+import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.LANGUAGE_COOKIE_NAME;
+import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
 public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     @Autowired
-    HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+    CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
 
     @Autowired
     protected ResourceBundleMessageSource messageSource;
@@ -44,7 +45,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
                 .queryParam("error", URLEncoder.encode(messageSource.getMessage(exception.getLocalizedMessage(), null, new Locale(language))), StandardCharsets.UTF_8)
                 .build().toUriString();
 
-        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+        cookieOAuth2AuthorizationRequestService.removeAuthorizationRequestCookies(request, response);
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }

@@ -6,8 +6,8 @@ import com.example.fullstacktemplate.dto.mapper.UserMapper;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TwoFactorRecoveryCode;
 import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.security.CurrentUser;
-import com.example.fullstacktemplate.security.UserPrincipal;
+import com.example.fullstacktemplate.config.security.CurrentUser;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
 import dev.samstevens.totp.code.*;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import dev.samstevens.totp.qr.QrData;
@@ -65,7 +65,7 @@ public class UserController extends Controller {
     public ResponseEntity<?> changePassword(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody ChangePasswordDto changePasswordDto) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
         user = userService.updatePassword(user, changePasswordDto);
-        String accessToken = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String accessToken = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
         AuthResponseDto authResponseDto = new AuthResponseDto();
         authResponseDto.setTwoFactorRequired(false);
         authResponseDto.setAccessToken(accessToken);

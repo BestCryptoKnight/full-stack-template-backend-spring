@@ -1,8 +1,9 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.service;
 
 
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.UserRepository;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      LocaleResolver acceptHeaderLocaleResolver;
 
     @Autowired
-    public CustomUserDetailsService(UserRepository userRepository,  LocaleResolver acceptHeaderLocaleResolver) {
+    public CustomUserDetailsService(UserRepository userRepository, LocaleResolver acceptHeaderLocaleResolver) {
         this.userRepository = userRepository;
         this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
     }

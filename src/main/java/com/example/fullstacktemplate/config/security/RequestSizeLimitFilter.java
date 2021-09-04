@@ -1,5 +1,6 @@
-package com.example.fullstacktemplate.config;
+package com.example.fullstacktemplate.config.security;
 
+import com.example.fullstacktemplate.config.AppProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 

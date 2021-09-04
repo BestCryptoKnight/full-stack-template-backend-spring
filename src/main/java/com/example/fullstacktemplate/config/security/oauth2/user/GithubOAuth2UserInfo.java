@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.security.oauth2.user;
+package com.example.fullstacktemplate.config.security.oauth2.user;
 
 import java.util.Map;
 

@@ -1,15 +1,14 @@
-package com.example.fullstacktemplate.security.oauth2;
+package com.example.fullstacktemplate.service;
 
 import com.example.fullstacktemplate.exception.OAuth2AuthenticationProcessingException;
-import com.example.fullstacktemplate.model.AuthProvider;
-import com.example.fullstacktemplate.model.FileType;
-import com.example.fullstacktemplate.model.User;
+import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.security.UserPrincipal;
-import com.example.fullstacktemplate.security.oauth2.user.OAuth2UserInfo;
-import com.example.fullstacktemplate.security.oauth2.user.OAuth2UserInfoFactory;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
+import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfo;
+import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfoFactory;
 import com.example.fullstacktemplate.service.FileDbService;
 import dev.samstevens.totp.secret.SecretGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -26,7 +25,8 @@ import java.net.URL;
 import java.util.Optional;
 
 @Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+@Slf4j
+public class OAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -46,6 +46,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } catch (AuthenticationException ex) {
             throw ex;
         } catch (Exception ex) {
+            log.error("Error while authentication oauth2 user",ex);
             throw new InternalAuthenticationServiceException("somethingWrong");
         }
     }

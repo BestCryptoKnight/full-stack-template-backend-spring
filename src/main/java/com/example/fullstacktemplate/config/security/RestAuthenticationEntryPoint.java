@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.security;
+package com.example.fullstacktemplate.config.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

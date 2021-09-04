@@ -10,7 +10,6 @@ import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.security.JwtTokenProvider;
 import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -38,19 +37,19 @@ public class UserService {
     private final SecretGenerator twoFactorSecretGenerator;
     private final TokenRepository tokenRepository;
     private final AppProperties appProperties;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenService jwtTokenService;
     private final ResourceLoader resourceLoader;
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final FileDbRepository fileDbRepository;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, FileDbService fileDbService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenProvider jwtTokenProvider, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileDbRepository fileDbRepository) {
+    public UserService(PasswordEncoder passwordEncoder, FileDbService fileDbService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenService jwtTokenService, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileDbRepository fileDbRepository) {
         this.passwordEncoder = passwordEncoder;
         this.fileDbService = fileDbService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
         this.appProperties = appProperties;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtTokenService = jwtTokenService;
         this.tokenRepository = tokenRepository;
         this.resourceLoader = resourceLoader;
         this.userRepository = userRepository;
@@ -140,7 +139,7 @@ public class UserService {
         Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequestDto.getToken(), TokenType.ACCOUNT_ACTIVATION);
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
-            if (!jwtTokenProvider.validateToken(tokenAccessRequestDto.getToken())) {
+            if (!jwtTokenService.validateToken(tokenAccessRequestDto.getToken())) {
                 throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmailVerified(true);
@@ -168,7 +167,7 @@ public class UserService {
         Optional<JwtToken> optionalVerificationToken = tokenRepository.findByValueAndTokenType(tokenAccessRequestDto.getToken(), TokenType.EMAIL_UPDATE);
         if (optionalVerificationToken.isPresent()) {
             User user = optionalVerificationToken.get().getUser();
-            if (!jwtTokenProvider.validateToken(tokenAccessRequestDto.getToken())) {
+            if (!jwtTokenService.validateToken(tokenAccessRequestDto.getToken())) {
                 throw new BadRequestException("tokenExpired");
             } else {
                 user.setEmail(user.getRequestedNewEmail());
@@ -191,7 +190,7 @@ public class UserService {
         }
         String newEmail = newUser.getRequestedNewEmail();
         if (user.getRequestedNewEmail() != null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {
-            String tokenValue = jwtTokenProvider.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+            String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
             createToken(user, tokenValue, TokenType.EMAIL_UPDATE);
             emailService.sendEmailChangeConfirmationMessage(newEmail, user.getEmail(), tokenValue);
         }
