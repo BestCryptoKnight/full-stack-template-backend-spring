@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.mapper;
+package com.example.fullstacktemplate.dto.mapper;
 
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.FileDb;

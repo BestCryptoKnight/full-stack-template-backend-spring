@@ -1,4 +1,4 @@
-package com.example.fullstacktemplate.mapper;
+package com.example.fullstacktemplate.dto.mapper;
 
 public interface CustomMapper<DTO,ENTITY> {
 

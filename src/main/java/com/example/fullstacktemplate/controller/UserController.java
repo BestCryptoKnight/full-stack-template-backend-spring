@@ -2,7 +2,7 @@ package com.example.fullstacktemplate.controller;
 
 import com.example.fullstacktemplate.dto.*;
 import com.example.fullstacktemplate.exception.BadRequestException;
-import com.example.fullstacktemplate.mapper.UserMapper;
+import com.example.fullstacktemplate.dto.mapper.UserMapper;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TwoFactorRecoveryCode;
 import com.example.fullstacktemplate.model.User;
