@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @Slf4j
@@ -35,6 +36,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private SecretGenerator twoFactorSecretGenerator;
+
+    @Autowired
+    private MessageService messageService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
@@ -50,18 +54,18 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
-    private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) throws IOException {
+    private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) throws IOException,AuthenticationException {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(oAuth2UserRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
         if (StringUtils.isEmpty(oAuth2UserInfo.getEmail())) {
-            throw new OAuth2AuthenticationProcessingException("emailNotFoundFromO2Auth");
+            throw new OAuth2AuthenticationProcessingException(messageService.getMessage("emailNotFoundFromO2Auth"));
         }
 
-        Optional<User> userOptional = userRepository.findByProviderId(oAuth2UserInfo.getId());
+        Optional<User> userOptional = userRepository.findByProviderId(oAuth2UserInfo.getId()).or(() -> userRepository.findByEmail(oAuth2UserInfo.getEmail()));
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (!user.getAuthProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
-                throw new OAuth2AuthenticationProcessingException("alreadyHaveAccountO2AuthTemplate");
+                throw new OAuth2AuthenticationProcessingException(messageService.getMessage("alreadyHaveAccountO2AuthTemplate",new Object[]{user.getEmail()}));
             }
         } else {
             user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);

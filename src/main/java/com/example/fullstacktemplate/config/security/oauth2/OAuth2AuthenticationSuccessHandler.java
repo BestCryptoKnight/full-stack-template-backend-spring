@@ -10,10 +10,10 @@ import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService;
 import com.example.fullstacktemplate.service.JwtTokenService;
 import com.example.fullstacktemplate.config.security.UserPrincipal;
+import com.example.fullstacktemplate.service.MessageService;
 import com.example.fullstacktemplate.service.UserService;
 import com.example.fullstacktemplate.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -28,14 +28,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.LANGUAGE_COOKIE_NAME;
 import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final ResourceBundleMessageSource messageSource;
 
     private final  LocaleResolver acceptHeaderLocaleResolver;
 
@@ -49,18 +50,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final MessageService messageService;
 
     @Autowired
     OAuth2AuthenticationSuccessHandler(JwtTokenService jwtTokenService, AppProperties appProperties,
-                                       CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService, UserService userService, UserRepository userRepository, LocaleResolver acceptHeaderLocaleResolver, ResourceBundleMessageSource messageSource, TokenRepository tokenRepository) {
+                                       CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService, UserService userService, UserRepository userRepository, LocaleResolver acceptHeaderLocaleResolver, TokenRepository tokenRepository, MessageService messageService) {
         this.jwtTokenService = jwtTokenService;
         this.appProperties = appProperties;
         this.cookieOAuth2AuthorizationRequestService = cookieOAuth2AuthorizationRequestService;
         this.userService = userService;
         this.userRepository = userRepository;
         this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
-        this.messageSource = messageSource;
         this.tokenRepository = tokenRepository;
+        this.messageService = messageService;
     }
 
     @Override
@@ -80,9 +82,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
                 .map(Cookie::getValue);
-
         if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
-            throw new BadRequestException(messageSource.getMessage("o2authInvalidTargetUrl", null, acceptHeaderLocaleResolver.resolveLocale(request)));
+            throw new BadRequestException(messageService.getMessage("o2authInvalidTargetUrl"));
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
@@ -92,6 +93,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         JwtToken refreshToken = tokenRepository.save(userService.createToken(user, refreshTokenValue, TokenType.REFRESH));
         response.addCookie(userService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));
         String token = jwtTokenService.createTokenValue(((UserPrincipal) authentication.getPrincipal()).getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
+
+
 
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("expires", TimeUnit.MILLISECONDS.toDays(appProperties.getAuth().getPersistentTokenExpirationMsec()))

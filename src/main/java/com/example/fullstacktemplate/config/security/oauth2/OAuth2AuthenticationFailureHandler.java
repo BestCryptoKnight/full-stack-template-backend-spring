@@ -39,10 +39,9 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         String targetUrl = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
                 .map(Cookie::getValue)
                 .orElse(("/"));
-        String language = CookieUtils.getCookie(request, LANGUAGE_COOKIE_NAME).map(Cookie::getValue).orElse("en");
 
         targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
-                .queryParam("error", URLEncoder.encode(messageSource.getMessage(exception.getLocalizedMessage(), null, new Locale(language))), StandardCharsets.UTF_8)
+                .queryParam("error", URLEncoder.encode(exception.getLocalizedMessage()), StandardCharsets.UTF_8)
                 .build().toUriString();
 
         cookieOAuth2AuthorizationRequestService.removeAuthorizationRequestCookies(request, response);
