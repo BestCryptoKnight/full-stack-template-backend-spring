@@ -2,7 +2,7 @@ package com.example.fullstacktemplate.dto.mapper;
 
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.service.UserService;
+import com.example.fullstacktemplate.repository.UserRepository;
 import org.mapstruct.ObjectFactory;
 import org.springframework.stereotype.Component;
 
@@ -10,15 +10,15 @@ import org.springframework.stereotype.Component;
 public class UserMapperResolver {
 
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
-    public UserMapperResolver(UserService userService) {
-        this.userService = userService;
+    public UserMapperResolver(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
 
     @ObjectFactory
     public User resolve(Long id){
-        return userService.findById(id).orElseThrow(()->new BadRequestException("userNotFound"));
+        return userRepository.findById(id).orElseThrow(()->new BadRequestException("userNotFound"));
     }
 }

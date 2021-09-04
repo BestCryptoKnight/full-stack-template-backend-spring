@@ -1,6 +1,7 @@
 package com.example.fullstacktemplate.dto;
 
 import com.example.fullstacktemplate.dto.validation.File;
+import com.example.fullstacktemplate.model.AuthProvider;
 import com.example.fullstacktemplate.model.FileType;
 import lombok.Data;
 
@@ -20,5 +21,7 @@ public class UserDto {
     private FileDbDto profileImage;
 
     private Boolean twoFactorEnabled;
+
+    private Boolean isO2authAccount;
 
 }
