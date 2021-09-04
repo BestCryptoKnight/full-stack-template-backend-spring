@@ -6,7 +6,6 @@ import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.config.security.UserPrincipal;
 import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfo;
 import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfoFactory;
-import com.example.fullstacktemplate.service.FileDbService;
 import dev.samstevens.totp.secret.SecretGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -57,14 +56,13 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationProcessingException("emailNotFoundFromO2Auth");
         }
 
-        Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
+        Optional<User> userOptional = userRepository.findByProviderId(oAuth2UserInfo.getId());
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
-            if (!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
+            if (!user.getAuthProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
                 throw new OAuth2AuthenticationProcessingException("alreadyHaveAccountO2AuthTemplate");
             }
-            user = updateExistingUser(user, oAuth2UserInfo);
         } else {
             user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
         }
@@ -75,7 +73,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     private User registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) throws IOException {
         User user = new User();
         user.setEmailVerified(true);
-        user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
+        user.setAuthProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());
         user.setName(oAuth2UserInfo.getName());
         user.setEmail(oAuth2UserInfo.getEmail());
@@ -86,13 +84,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         FileDb profileImage = new FileDb("profile_image.png", FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url));
         user.setProfileImage(profileImage);
         return userRepository.save(user);
-    }
-
-    private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) throws IOException {
-        existingUser.setName(oAuth2UserInfo.getName());
-        URL url = new URL(oAuth2UserInfo.getImageUrl());
-        existingUser.setProfileImage(fileDbService.save("profile_image.png",  FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url)));
-        return userRepository.save(existingUser);
     }
 
 }

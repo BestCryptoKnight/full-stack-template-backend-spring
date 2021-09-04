@@ -1,13 +1,13 @@
 package com.example.fullstacktemplate.controller;
 
+import com.example.fullstacktemplate.config.security.CurrentUser;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
 import com.example.fullstacktemplate.dto.*;
-import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.dto.mapper.UserMapper;
+import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.TwoFactorRecoveryCode;
 import com.example.fullstacktemplate.model.User;
-import com.example.fullstacktemplate.config.security.CurrentUser;
-import com.example.fullstacktemplate.config.security.UserPrincipal;
 import dev.samstevens.totp.code.*;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import dev.samstevens.totp.qr.QrData;
@@ -51,7 +51,7 @@ public class UserController extends Controller {
 
     @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody UserDto userDto) throws MalformedURLException, URISyntaxException {
-        userService.updateProfile(userPrincipal.getId(), userMapper.toEntity(userPrincipal.getId(), userDto));
+        userService.updateProfile(userPrincipal.getId(), userDto);
         return ResponseEntity.ok().build();
     }
 
@@ -83,8 +83,7 @@ public class UserController extends Controller {
     @PostMapping("/two-factor-setup")
     public ResponseEntity<?> getTwoFactorSetup(@CurrentUser UserPrincipal userPrincipal) throws QrGenerationException, MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
-        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
-        userService.updateProfile(userPrincipal.getId(), user);
+        user = userService.setNewTwoFactorSecret(user);
         QrData data = new QrData.Builder()
                 .label(user.getEmail())
                 .secret(user.getTwoFactorSecret())
@@ -124,8 +123,7 @@ public class UserController extends Controller {
     @PostMapping("/two-factor-setup-secret")
     public ResponseEntity<?> getTwoFactorSetupSecret(@CurrentUser UserPrincipal userPrincipal) throws MalformedURLException, URISyntaxException {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
-        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
-        userService.updateProfile(userPrincipal.getId(), user);
+        user = userService.setNewTwoFactorSecret(user);
         emailService.sendSimpleMessage(
                 user.getEmail(),
                 messageService.getMessage("twoFactorSetupEmailSubject"),

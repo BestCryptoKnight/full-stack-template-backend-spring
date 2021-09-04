@@ -4,6 +4,8 @@ import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ChangePasswordDto;
 import com.example.fullstacktemplate.dto.SignUpRequestDto;
 import com.example.fullstacktemplate.dto.TokenAccessRequestDto;
+import com.example.fullstacktemplate.dto.UserDto;
+import com.example.fullstacktemplate.dto.mapper.UserMapper;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.model.*;
@@ -42,9 +44,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final FileDbRepository fileDbRepository;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, FileDbService fileDbService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenService jwtTokenService, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileDbRepository fileDbRepository) {
+    public UserService(PasswordEncoder passwordEncoder, FileDbService fileDbService, SecretGenerator twoFactorSecretGenerator, AppProperties appProperties, JwtTokenService jwtTokenService, TokenRepository tokenRepository, ResourceLoader resourceLoader, UserRepository userRepository, EmailService emailService, FileDbRepository fileDbRepository, UserMapper userMapper) {
         this.passwordEncoder = passwordEncoder;
         this.fileDbService = fileDbService;
         this.twoFactorSecretGenerator = twoFactorSecretGenerator;
@@ -55,6 +58,7 @@ public class UserService {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.fileDbRepository = fileDbRepository;
+        this.userMapper = userMapper;
     }
 
     public JwtToken createToken(User user, String value, TokenType tokenType) {
@@ -71,9 +75,10 @@ public class UserService {
         user.setName(signUpRequestDto.getName());
         user.setEmail(signUpRequestDto.getEmail());
         user.setPassword(signUpRequestDto.getPassword());
-        user.setProvider(AuthProvider.local);
+        user.setAuthProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setTwoFactorEnabled(false);
+        user.setRole(Role.USER);
         user.setProfileImage(fileDbService.save("blank-profile-picture.png", FileType.IMAGE_PNG, resourceLoader.getResource("classpath:images\\blank-profile-picture.png").getInputStream().readAllBytes()));
         return userRepository.save(user);
     }
@@ -180,7 +185,7 @@ public class UserService {
         throw new BadRequestException("invalidToken");
     }
 
-    public User updateProfile(Long currentUserId, User newUser) throws MalformedURLException, URISyntaxException {
+    public User updateProfile(Long currentUserId, UserDto newUser) throws MalformedURLException, URISyntaxException {
         User user = findById(currentUserId).orElseThrow(() -> new BadRequestException("userNotFound"));
         if (!newUser.getEmail().equals(user.getEmail()) && isEmailUsed(newUser.getEmail())) {
             throw new BadRequestException("emailInUse");
@@ -188,13 +193,19 @@ public class UserService {
         if (!newUser.getName().equals(user.getName()) && isUsernameUsed(newUser.getName())) {
             throw new BadRequestException("usernameInUse");
         }
-        String newEmail = newUser.getRequestedNewEmail();
-        if (user.getRequestedNewEmail() != null && !user.getEmail().equals(newUser.getRequestedNewEmail())) {
+        String newEmail = newUser.getEmail();
+        if (user.getEmail() != null && !user.getEmail().equals(newUser.getEmail())) {
             String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
             createToken(user, tokenValue, TokenType.EMAIL_UPDATE);
-            emailService.sendEmailChangeConfirmationMessage(newEmail, user.getEmail(), tokenValue);
+            emailService.sendEmailChangeConfirmationMessage(newEmail, newUser.getEmail(), tokenValue);
         }
-        return userRepository.save(newUser);
+        return userRepository.save(userMapper.toEntity(currentUserId,newUser));
+    }
+
+    public User setNewTwoFactorSecret(User user){
+        user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
+        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public boolean isUsernameUsed(String username) {

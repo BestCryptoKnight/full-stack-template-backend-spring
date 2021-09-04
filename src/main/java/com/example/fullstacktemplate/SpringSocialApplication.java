@@ -5,7 +5,7 @@ import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.security.JwtTokenProvider;
+import com.example.fullstacktemplate.service.JwtTokenService;
 import com.example.fullstacktemplate.service.UserService;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,10 +13,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -44,7 +47,7 @@ public class SpringSocialApplication {
             UserService userService,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtTokenProvider jwtTokenProvider,
+            JwtTokenService jwtTokenService,
             AppProperties appProperties,
             TokenRepository tokenRepository,
             ResourceLoader resourceLoader
@@ -66,10 +69,9 @@ public class SpringSocialApplication {
                 user.setId((long) i);
                 user.setEmailVerified(false);
                 user.setName("Test" + suffix);
-                user.setEmail("hradil.o@email.cz" + suffix);
-                user.setProvider(AuthProvider.local);
+                user.setEmail("hrao01@vse.cz" + suffix);
+                user.setAuthProvider(AuthProvider.local);
                 user.setPassword(passwordEncoder.encode("test" + suffix));
-                user.setTwoFactorEnabled(false);
                 user.setTwoFactorEnabled(false);
                 user.setEmailVerified(true);
                 user.setProfileImage(fileDb);
@@ -79,20 +81,15 @@ public class SpringSocialApplication {
                     user.setRole(Role.USER);
                 }
                 users.add(user);
-/*
+                userRepository.saveAll(users);
 
                 for (Integer j = 1; j <= 1000; j++) {
-                    String tokenValue = jwtTokenProvider.createToken(user, Duration.of(0L, ChronoUnit.MILLIS));
-                    JwtToken jwtToken = userService.createToken(user, tokenValue, TokenType.values()[random.nextInt(TokenType.values().length)]);
-                    jwtToken.setId((long) i * j);
-                    jwtToken.setUser(user);
-                    tokens.add(jwtToken);
-                }*/
+                    String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(0L, ChronoUnit.MILLIS));
+                    userService.createToken(user, tokenValue, TokenType.values()[random.nextInt(TokenType.values().length)]);
+                }
 
             }
             fileDbRepository.saveAll(files);
-            userRepository.saveAll(users);
-            tokenRepository.saveAll(tokens);
 
         };
     }

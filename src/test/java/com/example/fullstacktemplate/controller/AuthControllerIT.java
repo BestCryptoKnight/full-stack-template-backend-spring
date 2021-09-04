@@ -217,7 +217,7 @@ public class AuthControllerIT {
 
     private static User createUser(String username, String email, String password, Boolean emailVerified, Boolean twoFactorEnabled) {
         User user = new User();
-        user.setProvider(AuthProvider.local);
+        user.setAuthProvider(AuthProvider.local);
         user.setName(username);
         user.setEmail(email);
         user.setPassword(password);

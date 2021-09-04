@@ -28,6 +28,10 @@ public class AuthenticationService {
 
     public boolean isVerificationCodeValid(Long userId, String verificationCode) {
         User user = userRepository.findById(userId).orElseThrow(()->new BadRequestException("userNotFound"));
+        return isVerificationCodeValid(user,verificationCode);
+    }
+
+    public boolean isVerificationCodeValid(User user, String verificationCode) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
