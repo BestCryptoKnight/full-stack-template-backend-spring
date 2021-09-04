@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
@@ -14,6 +15,7 @@ import java.util.Locale;
 @ConfigurationProperties(prefix = "app")
 @Getter
 @Setter
+@EnableAsync
 public class AppProperties {
     private final Auth auth = new Auth();
     private List<String> authorizedRedirectUris;
