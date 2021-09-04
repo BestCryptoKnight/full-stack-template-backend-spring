@@ -81,8 +81,10 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         user.setEmail(oAuth2UserInfo.getEmail());
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         user.setTwoFactorEnabled(false);
+        user.setRole(Role.USER);
         URL url = new URL(oAuth2UserInfo.getImageUrl());
-        user.setProfileImage(fileDbService.save("profile_image.png", FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url)));
+        FileDb profileImage = new FileDb("profile_image.png", FileType.fromMimeType(url.openConnection().getContentType()).orElse(FileType.IMAGE_PNG), IOUtils.toByteArray(url));
+        user.setProfileImage(profileImage);
         return userRepository.save(user);
     }
 
