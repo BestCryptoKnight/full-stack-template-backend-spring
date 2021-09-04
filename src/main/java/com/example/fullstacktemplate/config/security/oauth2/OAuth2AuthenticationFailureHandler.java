@@ -25,14 +25,11 @@ import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationReq
 @Component
 public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    @Autowired
-    CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
+    private  final CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
 
-    @Autowired
-    protected ResourceBundleMessageSource messageSource;
-
-    @Autowired
-    protected  LocaleResolver acceptHeaderLocaleResolver;
+    public OAuth2AuthenticationFailureHandler(CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService, ResourceBundleMessageSource messageSource, LocaleResolver acceptHeaderLocaleResolver) {
+        this.cookieOAuth2AuthorizationRequestService = cookieOAuth2AuthorizationRequestService;
+    }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {

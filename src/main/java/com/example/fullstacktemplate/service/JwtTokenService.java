@@ -14,7 +14,7 @@ public class JwtTokenService {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
 
     public JwtTokenService(AppProperties appProperties) {
         this.appProperties = appProperties;

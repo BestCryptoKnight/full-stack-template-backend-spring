@@ -28,22 +28,19 @@ import java.util.function.Supplier;
 @Slf4j
 public class OAuth2UserService extends DefaultOAuth2UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final SecretGenerator twoFactorSecretGenerator;
+    private final MessageService messageService;
 
-    @Autowired
-    private FileDbService fileDbService;
-
-    @Autowired
-    private SecretGenerator twoFactorSecretGenerator;
-
-    @Autowired
-    private MessageService messageService;
+    public OAuth2UserService(UserRepository userRepository, SecretGenerator twoFactorSecretGenerator, MessageService messageService) {
+        this.userRepository = userRepository;
+        this.twoFactorSecretGenerator = twoFactorSecretGenerator;
+        this.messageService = messageService;
+    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
-
         try {
             return processOAuth2User(oAuth2UserRequest, oAuth2User);
         } catch (AuthenticationException ex) {

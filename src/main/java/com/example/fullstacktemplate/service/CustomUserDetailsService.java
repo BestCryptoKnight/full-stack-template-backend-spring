@@ -13,23 +13,14 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import java.util.Optional;
 
-/**
- * Created by rajeevkumarsingh on 02/08/17.
- */
-
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    final
-    UserRepository userRepository;
-
-    final
-     LocaleResolver acceptHeaderLocaleResolver;
+   private final UserRepository userRepository;
 
     @Autowired
-    public CustomUserDetailsService(UserRepository userRepository, LocaleResolver acceptHeaderLocaleResolver) {
+    public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
     }
 
     @Override

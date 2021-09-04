@@ -65,11 +65,4 @@ public class AppProperties {
         }
     }
 
-    @Bean
-    public LocaleResolver acceptHeaderLocaleResolver() {
-        AcceptHeaderLocaleResolver acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();
-        acceptHeaderLocaleResolver.setDefaultLocale(Locale.ENGLISH);
-        acceptHeaderLocaleResolver.setSupportedLocales(Arrays.asList(Locale.ENGLISH, new Locale("cs")));
-        return acceptHeaderLocaleResolver;
-    }
 }

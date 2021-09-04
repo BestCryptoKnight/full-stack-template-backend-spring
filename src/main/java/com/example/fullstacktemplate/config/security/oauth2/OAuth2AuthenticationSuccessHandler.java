@@ -38,29 +38,21 @@ import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationReq
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final  LocaleResolver acceptHeaderLocaleResolver;
-
-    private JwtTokenService jwtTokenService;
-
-    private AppProperties appProperties;
-
-    private CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
-
+    private final JwtTokenService jwtTokenService;
+    private final AppProperties appProperties;
+    private final CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
     private final TokenRepository tokenRepository;
-
     private final UserService userService;
-    private final UserRepository userRepository;
     private final MessageService messageService;
 
     @Autowired
     OAuth2AuthenticationSuccessHandler(JwtTokenService jwtTokenService, AppProperties appProperties,
-                                       CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService, UserService userService, UserRepository userRepository, LocaleResolver acceptHeaderLocaleResolver, TokenRepository tokenRepository, MessageService messageService) {
+                                       CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService,
+                                       UserService userService, TokenRepository tokenRepository, MessageService messageService) {
         this.jwtTokenService = jwtTokenService;
         this.appProperties = appProperties;
         this.cookieOAuth2AuthorizationRequestService = cookieOAuth2AuthorizationRequestService;
         this.userService = userService;
-        this.userRepository = userRepository;
-        this.acceptHeaderLocaleResolver = acceptHeaderLocaleResolver;
         this.tokenRepository = tokenRepository;
         this.messageService = messageService;
     }

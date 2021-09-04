@@ -29,43 +29,30 @@ public abstract class Controller {
 
     @Autowired
     protected AuthenticationManager authenticationManager;
-
     @Autowired
     protected PasswordEncoder passwordEncoder;
-
     @Autowired
     protected JwtTokenService jwtTokenService;
-
     @Autowired
     protected EmailService emailService;
-
     @Autowired
     protected UserService userService;
-
     @Autowired
     protected TokenRepository tokenRepository;
-
     @Autowired
     protected FileDbService storageService;
-
     @Autowired
     protected AppProperties appProperties;
-
     @Autowired
     protected SecretGenerator twoFactorSecretGenerator;
-
     @Autowired
     protected CustomUserDetailsService customUserDetailsService;
-
     @Autowired
     protected TwoFactoryRecoveryCodeRepository twoFactoryRecoveryCodeRepository;
-
     @Autowired
     protected AuthenticationService authenticationService;
-
     @Autowired
     protected MessageService messageService;
-
     @Autowired
     protected FileDbRepository fileDbRepository;
 

@@ -48,14 +48,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return userPrincipal;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
     @Override
     public String getPassword() {
         return password;

@@ -5,7 +5,6 @@ import com.example.fullstacktemplate.service.CustomUserDetailsService;
 import com.example.fullstacktemplate.service.JwtTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,19 +23,14 @@ import java.util.Optional;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenService jwtTokenService;
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenService jwtTokenService;
+    private final  CustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    protected ResourceBundleMessageSource messageSource;
-
-    @Autowired
-    protected  LocaleResolver acceptHeaderLocaleResolver;
-
-    private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
+    public TokenAuthenticationFilter(JwtTokenService jwtTokenService, CustomUserDetailsService customUserDetailsService) {
+        this.jwtTokenService = jwtTokenService;
+        this.customUserDetailsService = customUserDetailsService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

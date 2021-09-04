@@ -3,6 +3,7 @@ package com.example.fullstacktemplate.config;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.service.JwtTokenService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class ScheduledTasks {
     private final TokenRepository tokenRepository;
     private final JwtTokenService jwtTokenService;
-    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
     @Autowired
     public ScheduledTasks(TokenRepository tokenRepository, JwtTokenService jwtTokenService) {
