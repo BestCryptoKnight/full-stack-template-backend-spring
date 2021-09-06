@@ -5,10 +5,9 @@ import com.example.fullstacktemplate.dto.ApiResponseDto;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.exception.UnauthorizedRequestException;
 import com.example.fullstacktemplate.repository.FileDbRepository;
-import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.TwoFactoryRecoveryCodeRepository;
 import com.example.fullstacktemplate.service.CustomUserDetailsService;
-import com.example.fullstacktemplate.service.JwtTokenService;
+import com.example.fullstacktemplate.service.TokenService;
 import com.example.fullstacktemplate.service.*;
 import dev.samstevens.totp.secret.SecretGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +31,11 @@ public abstract class Controller {
     @Autowired
     protected PasswordEncoder passwordEncoder;
     @Autowired
-    protected JwtTokenService jwtTokenService;
+    protected TokenService tokenService;
     @Autowired
     protected EmailService emailService;
     @Autowired
     protected UserService userService;
-    @Autowired
-    protected TokenRepository tokenRepository;
     @Autowired
     protected FileDbService storageService;
     @Autowired
@@ -70,6 +67,7 @@ public abstract class Controller {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadRequestException.class)
     public ApiResponseDto handleBadRequestException(BadRequestException ex) {
+        log.error(ex.getMessage());
         return new ApiResponseDto(false, messageService.getMessage(ex.getLocalizedMessage()));
     }
 

@@ -5,7 +5,7 @@ import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.dto.*;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.service.JwtTokenService;
+import com.example.fullstacktemplate.service.TokenService;
 import com.google.gson.Gson;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetup;
@@ -70,7 +70,7 @@ public class AuthControllerIT {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtTokenService jwtTokenService;
+    private TokenService tokenService;
 
     @Autowired
     private TokenRepository tokenRepository;
@@ -104,7 +104,7 @@ public class AuthControllerIT {
 
         assertAll(
                 () -> assertEquals(200, mvcResult.getResponse().getStatus()),
-                () -> assertEquals(user.getId(), jwtTokenService.getUserIdFromToken(authResponseDto.getAccessToken()))
+                () -> assertEquals(user.getId(), tokenService.getUserIdFromToken(authResponseDto.getAccessToken()))
 
         );
     }
@@ -118,7 +118,7 @@ public class AuthControllerIT {
 
         assertAll(
                 () -> assertEquals(200, mvcResult.getResponse().getStatus()),
-                () -> assertEquals(user.getId(), jwtTokenService.getUserIdFromToken(authResponseDto.getAccessToken()))
+                () -> assertEquals(user.getId(), tokenService.getUserIdFromToken(authResponseDto.getAccessToken()))
 
         );
     }
@@ -133,7 +133,7 @@ public class AuthControllerIT {
     @Test
     public void activateUserAccountTest_existingUserAndValidNotExpiredToken_ShouldActivate() throws Exception {
         User userWithoutActivatedAccount = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), false, false));
-        String token = jwtTokenService.createTokenValue(userWithoutActivatedAccount.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
+        String token = tokenService.createJwtTokenValue(userWithoutActivatedAccount.getId(), Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS));
         tokenRepository.save(createToken(userWithoutActivatedAccount, token, TokenType.ACCOUNT_ACTIVATION));
 
         MvcResult mvcResult = activateAccount(EMAIL, token);
@@ -150,7 +150,7 @@ public class AuthControllerIT {
     @Test
     public void activateUserAccountTest_existingUserAndValidExpiredToken_ShouldNotActivate() throws Exception {
         User existingUser = userRepository.save(createUser(USERNAME, EMAIL, passwordEncoder.encode(VALID_PASSWORD), false, false));
-        String token = jwtTokenService.createTokenValue(existingUser.getId(), Duration.of(0L, ChronoUnit.MILLIS));
+        String token = tokenService.createJwtTokenValue(existingUser.getId(), Duration.of(0L, ChronoUnit.MILLIS));
         tokenRepository.save(createToken(existingUser, token, TokenType.ACCOUNT_ACTIVATION));
 
         MvcResult mvcResult = activateAccount(EMAIL, token);

@@ -8,6 +8,6 @@ import java.util.List;
 
 @Getter
 @Setter
-public class TwoFactorVerificationResponseDto {
+public class TwoFactorDto {
     private List<String> verificationCodes;
 }

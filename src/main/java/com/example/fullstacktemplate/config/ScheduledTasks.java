@@ -2,10 +2,8 @@ package com.example.fullstacktemplate.config;
 
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.repository.TokenRepository;
-import com.example.fullstacktemplate.service.JwtTokenService;
+import com.example.fullstacktemplate.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,12 +15,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ScheduledTasks {
     private final TokenRepository tokenRepository;
-    private final JwtTokenService jwtTokenService;
+    private final TokenService tokenService;
 
     @Autowired
-    public ScheduledTasks(TokenRepository tokenRepository, JwtTokenService jwtTokenService) {
+    public ScheduledTasks(TokenRepository tokenRepository, TokenService tokenService) {
         this.tokenRepository = tokenRepository;
-        this.jwtTokenService = jwtTokenService;
+        this.tokenService = tokenService;
     }
 
     @Scheduled(fixedDelayString = "${app.deleteExpiredTokensDelayMsec}")
@@ -31,7 +29,7 @@ public class ScheduledTasks {
         List<JwtToken> expiredTokens = tokenRepository
                 .findAll()
                 .stream()
-                .filter(jwtToken -> !jwtTokenService.validateToken(jwtToken.getValue()))
+                .filter(jwtToken -> !tokenService.validateJwtToken(jwtToken.getValue()))
                 .collect(Collectors.toList());
         tokenRepository.deleteAll(expiredTokens);
         log.info("Following tokens were deleted {}", expiredTokens);

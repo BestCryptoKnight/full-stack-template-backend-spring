@@ -3,21 +3,15 @@ package com.example.fullstacktemplate.config.security.oauth2;
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.JwtToken;
-import com.example.fullstacktemplate.model.TokenType;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.TokenRepository;
-import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService;
-import com.example.fullstacktemplate.service.JwtTokenService;
+import com.example.fullstacktemplate.service.*;
 import com.example.fullstacktemplate.config.security.UserPrincipal;
-import com.example.fullstacktemplate.service.MessageService;
-import com.example.fullstacktemplate.service.UserService;
 import com.example.fullstacktemplate.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -28,33 +22,33 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.LANGUAGE_COOKIE_NAME;
 import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtTokenService jwtTokenService;
+    private final TokenService tokenService;
     private final AppProperties appProperties;
     private final CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService;
     private final TokenRepository tokenRepository;
     private final UserService userService;
     private final MessageService messageService;
+    private final AuthenticationService authenticationService;
 
     @Autowired
-    OAuth2AuthenticationSuccessHandler(JwtTokenService jwtTokenService, AppProperties appProperties,
+    OAuth2AuthenticationSuccessHandler(TokenService tokenService, AppProperties appProperties,
                                        CookieOAuth2AuthorizationRequestService cookieOAuth2AuthorizationRequestService,
-                                       UserService userService, TokenRepository tokenRepository, MessageService messageService) {
-        this.jwtTokenService = jwtTokenService;
+                                       UserService userService, TokenRepository tokenRepository, MessageService messageService, AuthenticationService authenticationService) {
+        this.tokenService = tokenService;
         this.appProperties = appProperties;
         this.cookieOAuth2AuthorizationRequestService = cookieOAuth2AuthorizationRequestService;
         this.userService = userService;
         this.tokenRepository = tokenRepository;
         this.messageService = messageService;
+        this.authenticationService = authenticationService;
     }
 
     @Override
@@ -81,16 +75,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
         User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(()->new BadRequestException("userNotFound"));
-        String refreshTokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS));
-        JwtToken refreshToken = tokenRepository.save(userService.createToken(user, refreshTokenValue, TokenType.REFRESH));
-        response.addCookie(userService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));
-        String token = jwtTokenService.createTokenValue(((UserPrincipal) authentication.getPrincipal()).getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
-
-
-
+        JwtToken refreshToken = authenticationService.createRefreshToken(user);
+        response.addCookie(authenticationService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));
+        String accessToken = authenticationService.createAccessToken(user);
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("expires", TimeUnit.MILLISECONDS.toDays(appProperties.getAuth().getPersistentTokenExpirationMsec()))
-                .queryParam("access_token", token)
+                .queryParam("access_token", accessToken)
                 .queryParam("refresh_token", refreshToken.getValue())
                 .build().toUriString();
     }

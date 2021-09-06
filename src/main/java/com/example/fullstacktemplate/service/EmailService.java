@@ -3,6 +3,7 @@ package com.example.fullstacktemplate.service;
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.dto.ForgottenPasswordRequestDto;
 import com.example.fullstacktemplate.dto.SignUpRequestDto;
+import com.example.fullstacktemplate.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,10 @@ import java.net.URISyntaxException;
 public class EmailService {
 
     private final JavaMailSender emailSender;
-    private final AppProperties appProperties;
-    private final MessageService messageService;
 
     @Autowired
-    public EmailService(JavaMailSender emailSender, AppProperties appProperties, MessageService messageService) {
+    public EmailService(JavaMailSender emailSender) {
         this.emailSender = emailSender;
-        this.appProperties = appProperties;
-        this.messageService = messageService;
     }
 
     @Async
@@ -41,35 +38,5 @@ public class EmailService {
         emailSender.send(message);
 
     }
-    @Async
-    public void sendAccountActivationMessage(SignUpRequestDto signUpRequestDto, String token) throws URISyntaxException, MalformedURLException {
-        URIBuilder uriBuilder = new URIBuilder(appProperties.getAccountActivationUri())
-                .addParameter("token", token);
-        this.sendSimpleMessage(
-                signUpRequestDto.getEmail(),
-                appProperties.getAppName() + " " + messageService.getMessage("activateAccountEmailSubject"),
-                String.format("%s %s", messageService.getMessage("activateAccountEmailBody"), uriBuilder.build().toURL().toString())
-        );
-    }
-    @Async
-    public void sendEmailChangeConfirmationMessage(String newEmail, String oldEmail, String token) throws URISyntaxException, MalformedURLException {
-        URIBuilder uriBuilder = new URIBuilder(appProperties.getEmailChangeConfirmationUri())
-                .addParameter("token", token);
-        this.sendSimpleMessage(
-                newEmail,
-                messageService.getMessage("confirmAccountEmailChangeEmailSubject", new Object[]{appProperties.getAppName()}),
-                messageService.getMessage("confirmAccountEmailChangeEmailBody", new Object[]{oldEmail, newEmail, uriBuilder.build().toURL().toString()})
-        );
-    }
-    @Async
-    public void sendPasswordResetMessage(ForgottenPasswordRequestDto forgottenPasswordRequestDto, String token) throws URISyntaxException, MalformedURLException {
-        URIBuilder uriBuilder = new URIBuilder(appProperties.getPasswordResetUri())
-                .addParameter("email", forgottenPasswordRequestDto.getEmail())
-                .addParameter("token", token);
-        this.sendSimpleMessage(
-                forgottenPasswordRequestDto.getEmail(),
-                appProperties.getAppName() + " " + messageService.getMessage("passwordResetEmailSubject"),
-                String.format("%s %s", messageService.getMessage("passwordResetEmailBody"), uriBuilder.build().toURL().toString())
-        );
-    }
+
 }

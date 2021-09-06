@@ -5,7 +5,7 @@ import com.example.fullstacktemplate.model.*;
 import com.example.fullstacktemplate.repository.FileDbRepository;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.repository.UserRepository;
-import com.example.fullstacktemplate.service.JwtTokenService;
+import com.example.fullstacktemplate.service.TokenService;
 import com.example.fullstacktemplate.service.UserService;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +13,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -44,12 +43,9 @@ public class SpringSocialApplication {
     public ApplicationRunner initializer
     (
             FileDbRepository fileDbRepository,
-            UserService userService,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtTokenService jwtTokenService,
-            AppProperties appProperties,
-            TokenRepository tokenRepository,
+            TokenService tokenService,
             ResourceLoader resourceLoader
 
 
@@ -84,8 +80,7 @@ public class SpringSocialApplication {
                 userRepository.saveAll(users);
 
                 for (Integer j = 1; j <= 1000; j++) {
-                    String tokenValue = jwtTokenService.createTokenValue(user.getId(), Duration.of(0L, ChronoUnit.MILLIS));
-                    userService.createToken(user, tokenValue, TokenType.values()[random.nextInt(TokenType.values().length)]);
+                    tokenService.createToken(user, Duration.of(0L, ChronoUnit.MILLIS), TokenType.values()[random.nextInt(TokenType.values().length)]);
                 }
 
             }
