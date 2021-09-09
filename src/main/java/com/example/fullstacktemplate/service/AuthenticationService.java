@@ -29,10 +29,14 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Service
 @Transactional
@@ -126,36 +130,37 @@ public class AuthenticationService {
         return tokenService.createJwtTokenValue(user.getId(), Duration.of(appProperties.getAuth().getAccessTokenExpirationMsec(), ChronoUnit.MILLIS));
     }
 
-    public JwtToken createRefreshToken(User user) {
+    private JwtToken createRefreshToken(User user) {
         return tokenService.createToken(user, Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS), TokenType.REFRESH);
     }
 
 
-    public Cookie createRefreshTokenCookie(String refreshTokenValue, Integer refreshTokenExpirationMillis) {
-        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshTokenValue);
-        cookie.setMaxAge(refreshTokenExpirationMillis);
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        return cookie;
+    public void addRefreshToken(User user) {
+        JwtToken refreshToken = createRefreshToken(user);
+        HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
+        Date expires = new Date();
+        expires.setTime(expires.getTime() + appProperties.getAuth().getPersistentTokenExpirationMsec());
+        DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.US);
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        response.setHeader("Set-Cookie", String.format("%s=%s; Expires=%s; Path=/; HttpOnly; SameSite=Strict;", REFRESH_TOKEN_COOKIE_NAME, refreshToken.getValue(), df.format(expires)));
     }
 
-    public Cookie createEmptyRefreshTokenCookie() {
-        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
-        cookie.setMaxAge(1);
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        return cookie;
+    public void removeRefreshToken() {
+        HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
+        Date expires = new Date();
+        expires.setTime(expires.getTime() + 1);
+        DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.US);
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        response.setHeader("Set-Cookie", String.format("%s=; Expires=%s; Path=/; HttpOnly; SameSite=Strict;", REFRESH_TOKEN_COOKIE_NAME, df.format(expires)));
     }
 
     public void logout(User user) {
         Optional<JwtToken> optionalRefreshToken = getRefreshToken();
         if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getUser().getId().equals(user.getId())) {
             tokenService.delete(optionalRefreshToken.get());
-            HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                    .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
-            response.addCookie(createEmptyRefreshTokenCookie());
+           removeRefreshToken();
         } else {
             throw new BadRequestException("tokenExpired");
         }
@@ -169,13 +174,10 @@ public class AuthenticationService {
 
     private AuthResponseDto getAuthResponse(User user) {
         String accessToken = createAccessToken(user);
-        JwtToken refreshToken = createRefreshToken(user);
         AuthResponseDto authResponseDto = new AuthResponseDto();
         authResponseDto.setTwoFactorRequired(user.getTwoFactorEnabled());
         authResponseDto.setAccessToken(accessToken);
-        HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
-        response.setHeader("Set-Cookie", REFRESH_TOKEN_COOKIE_NAME + "=" + refreshToken.getValue() + "; Path=/; HttpOnly; SameSite=Strict;");
+        addRefreshToken(user);
         return authResponseDto;
     }
 

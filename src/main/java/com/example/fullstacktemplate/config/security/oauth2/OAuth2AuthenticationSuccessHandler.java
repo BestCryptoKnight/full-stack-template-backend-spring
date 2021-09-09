@@ -1,12 +1,12 @@
 package com.example.fullstacktemplate.config.security.oauth2;
 
 import com.example.fullstacktemplate.config.AppProperties;
+import com.example.fullstacktemplate.config.security.UserPrincipal;
 import com.example.fullstacktemplate.exception.BadRequestException;
 import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.service.*;
-import com.example.fullstacktemplate.config.security.UserPrincipal;
 import com.example.fullstacktemplate.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -75,13 +73,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
         User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(()->new BadRequestException("userNotFound"));
-        JwtToken refreshToken = authenticationService.createRefreshToken(user);
-        response.addCookie(authenticationService.createRefreshTokenCookie(refreshToken.getValue(), (int) appProperties.getAuth().getPersistentTokenExpirationMsec()));
+        authenticationService.addRefreshToken(user);
         String accessToken = authenticationService.createAccessToken(user);
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("expires", TimeUnit.MILLISECONDS.toDays(appProperties.getAuth().getPersistentTokenExpirationMsec()))
                 .queryParam("access_token", accessToken)
-                .queryParam("refresh_token", refreshToken.getValue())
                 .build().toUriString();
     }
 
