@@ -143,7 +143,7 @@ public class AuthenticationService {
         expires.setTime(expires.getTime() + appProperties.getAuth().getPersistentTokenExpirationMsec());
         DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.US);
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        response.setHeader("Set-Cookie", String.format("%s=%s; Expires=%s; Path=/; HttpOnly; SameSite=Strict;", REFRESH_TOKEN_COOKIE_NAME, refreshToken.getValue(), df.format(expires)));
+        response.setHeader("Set-Cookie", String.format("%s=%s; Expires=%s; Path=/; HttpOnly; SameSite=none; Secure", REFRESH_TOKEN_COOKIE_NAME, refreshToken.getValue(), df.format(expires)));
     }
 
     public void removeRefreshToken() {
@@ -153,7 +153,7 @@ public class AuthenticationService {
         expires.setTime(expires.getTime() + 1);
         DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.US);
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        response.setHeader("Set-Cookie", String.format("%s=; Expires=%s; Path=/; HttpOnly; SameSite=Strict;", REFRESH_TOKEN_COOKIE_NAME, df.format(expires)));
+        response.setHeader("Set-Cookie", String.format("%s=; Expires=%s; Path=/; HttpOnly; SameSite=none; Secure", REFRESH_TOKEN_COOKIE_NAME, df.format(expires)));
     }
 
     public void logout(User user) {
