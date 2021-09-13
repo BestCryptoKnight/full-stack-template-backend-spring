@@ -1,5 +1,5 @@
 app:
-  frontEndUri: https://www.full-stack-template.com
+  frontEndUri: https://fullstack-template-react.herokuapp.com
   deleteExpiredTokensDelayMsec: 86400000 # 1 day
   allowedOrigins:
     - ${app.frontEndUri}
