@@ -1,5 +1,5 @@
 app:
-  frontEndUri: https://full-stack-template.com
+  frontEndUri: https://www.full-stack-template.com
   deleteExpiredTokensDelayMsec: 86400000 # 1 day
   allowedOrigins:
     - ${app.frontEndUri}
