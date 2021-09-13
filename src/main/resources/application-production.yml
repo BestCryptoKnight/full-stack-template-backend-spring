@@ -1,8 +1,8 @@
 app:
-  frontEndUri: https://fullstack-template-react.herokuapp.com
+  frontEndUri: https://full-stack-template.com
   deleteExpiredTokensDelayMsec: 86400000 # 1 day
   allowedOrigins:
-    - protected-ocelot-rh0045y1u3qwx6tttd63yn5f.herokudns.com
+    - ${app.frontEndUri}
     - https://auth.expo.io/@hasatori/ReactNativeFrontend
   authorizedRedirectUris:
     - ${app.frontEndUri}/oauth2/redirect
