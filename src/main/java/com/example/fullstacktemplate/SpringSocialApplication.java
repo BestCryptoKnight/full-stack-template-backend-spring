@@ -12,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,14 +33,8 @@ public class SpringSocialApplication {
         SpringApplication.run(SpringSocialApplication.class, args);
     }
 
-
-    /**
-     * Fills the application with data
-     *
-     * @param fileDbRepository
-     * @return
-     */
     @Bean
+    @Profile("local")
     public ApplicationRunner initializer
     (
             FileDbRepository fileDbRepository,
@@ -65,7 +60,7 @@ public class SpringSocialApplication {
                 user.setId((long) i);
                 user.setEmailVerified(false);
                 user.setName("Test" + suffix);
-                user.setEmail("hrao01@vse.cz" + suffix);
+                user.setEmail("test@gmail.com" + suffix);
                 user.setAuthProvider(AuthProvider.local);
                 user.setPassword(passwordEncoder.encode("test" + suffix));
                 user.setTwoFactorEnabled(false);
