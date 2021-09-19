@@ -1,15 +1,14 @@
 package com.example.fullstacktemplate.service;
 
-import com.example.fullstacktemplate.exception.OAuth2AuthenticationProcessingException;
-import com.example.fullstacktemplate.model.*;
-import com.example.fullstacktemplate.repository.UserRepository;
 import com.example.fullstacktemplate.config.security.UserPrincipal;
 import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfo;
 import com.example.fullstacktemplate.config.security.oauth2.user.OAuth2UserInfoFactory;
+import com.example.fullstacktemplate.exception.OAuth2AuthenticationProcessingException;
+import com.example.fullstacktemplate.model.*;
+import com.example.fullstacktemplate.repository.UserRepository;
 import dev.samstevens.totp.secret.SecretGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -22,7 +21,6 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 @Service
 @Slf4j
@@ -46,12 +44,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         } catch (AuthenticationException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("Error while authentication oauth2 user",ex);
+            log.error("Error while authentication oauth2 user", ex);
             throw new InternalAuthenticationServiceException(messageService.getMessage("somethingWrong"));
         }
     }
 
-    private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) throws IOException,AuthenticationException {
+    private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) throws IOException, AuthenticationException {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(oAuth2UserRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
         if (StringUtils.isEmpty(oAuth2UserInfo.getEmail())) {
             throw new OAuth2AuthenticationProcessingException(messageService.getMessage("emailNotFoundFromO2Auth"));
@@ -62,7 +60,11 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (!user.getAuthProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
-                throw new OAuth2AuthenticationProcessingException(messageService.getMessage("alreadyHaveAccountO2AuthTemplate",new Object[]{user.getEmail()}));
+                if (user.getAuthProvider() == AuthProvider.local) {
+                    throw new OAuth2AuthenticationProcessingException(messageService.getMessage("alreadyHaveRegularAccountO2AuthTemplate", new Object[]{user.getEmail()}));
+                } else {
+                    throw new OAuth2AuthenticationProcessingException(messageService.getMessage("alreadyHaveAccountO2AuthTemplate", new Object[]{user.getEmail(), user.getAuthProvider()}));
+                }
             }
         } else {
             user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
