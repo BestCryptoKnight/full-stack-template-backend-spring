@@ -212,15 +212,15 @@ public class UserService {
         );
     }
 
-    public void resetPassword(User user, String passwordResetTokenValue) {
-        Optional<JwtToken> optionalForgottenPassword = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
-        if (!optionalForgottenPassword.isPresent() || !optionalForgottenPassword.get().getValue().equals(passwordResetTokenValue)) {
+    public void resetPassword(User user, PasswordResetRequestDto passwordResetRequestDto) {
+        Optional<JwtToken> forgottenPasswordToken = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
+        if (forgottenPasswordToken.isEmpty() || !forgottenPasswordToken.get().getValue().equals(passwordResetRequestDto.getToken())) {
             throw new BadRequestException("invalidToken");
-        } else if (!tokenService.validateJwtToken(passwordResetTokenValue)) {
+        } else if (!tokenService.validateJwtToken(passwordResetRequestDto.getToken())) {
             throw new BadRequestException("tokenExpired");
         } else {
-            updateUserPassword(user, passwordResetTokenValue);
-            tokenRepository.delete(optionalForgottenPassword.get());
+            updateUserPassword(user, passwordResetRequestDto.getPassword());
+            tokenRepository.delete(forgottenPasswordToken.get());
         }
     }
 

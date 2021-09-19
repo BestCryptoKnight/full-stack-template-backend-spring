@@ -81,7 +81,7 @@ public class AuthController extends Controller {
     @PostMapping("/password-reset")
     public ResponseEntity<?> passwordReset(@Valid @RequestBody PasswordResetRequestDto passwordResetRequestDto) {
         User user = userService.findByEmail(passwordResetRequestDto.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
-        userService.resetPassword(user, passwordResetRequestDto.getToken());
+        userService.resetPassword(user, passwordResetRequestDto);
         return ResponseEntity
                 .ok(new ApiResponseDto(true, messageService.getMessage("passwordWasReset")));
 
