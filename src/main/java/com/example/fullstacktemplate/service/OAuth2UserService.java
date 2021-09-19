@@ -47,7 +47,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             throw ex;
         } catch (Exception ex) {
             log.error("Error while authentication oauth2 user",ex);
-            throw new InternalAuthenticationServiceException("somethingWrong");
+            throw new InternalAuthenticationServiceException(messageService.getMessage("somethingWrong"));
         }
     }
 
