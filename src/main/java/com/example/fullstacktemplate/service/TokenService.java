@@ -10,9 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.transaction.Transactional;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Service
@@ -22,10 +26,18 @@ public class TokenService {
 
     private final AppProperties appProperties;
     private final TokenRepository tokenRepository;
+    private final CryptoService cryptoService;
+    private final SecretKey secretKey;
+    private final String algorithm;
+    private final IvParameterSpec ivParameterSpec;
 
-    public TokenService(AppProperties appProperties, TokenRepository tokenRepository) {
+    public TokenService(AppProperties appProperties, TokenRepository tokenRepository, CryptoService cryptoService) throws NoSuchAlgorithmException {
         this.appProperties = appProperties;
         this.tokenRepository = tokenRepository;
+        this.cryptoService = cryptoService;
+        this.algorithm = "AES/CBC/PKCS5Padding";
+        this.ivParameterSpec = cryptoService.generateInitializationVector();
+        this.secretKey = cryptoService.generateKey(256);
     }
 
     public String createJwtTokenValue(Long id, Duration expireIn) {
@@ -35,13 +47,17 @@ public class TokenService {
     private String createJwtTokenValue(String subject, Duration expireIn) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expireIn.toMillis());
-
-        return Jwts.builder()
-                .setSubject(subject)
-                .setIssuedAt(new Date())
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret())
-                .compact();
+        try {
+            return Jwts.builder()
+                    .setSubject(cryptoService.encrypt(algorithm, subject, secretKey, ivParameterSpec))
+                    .setIssuedAt(new Date())
+                    .setExpiration(expiryDate)
+                    .setIssuer("Full stack template")
+                    .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret())
+                    .compact();
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            throw new IllegalStateException("Error while creating jwt token");
+        }
     }
 
     public Long getUserIdFromToken(String token) {
@@ -49,8 +65,11 @@ public class TokenService {
                 .setSigningKey(appProperties.getAuth().getTokenSecret())
                 .parseClaimsJws(token)
                 .getBody();
-
-        return Long.parseLong(claims.getSubject());
+        try {
+            return Long.parseLong(cryptoService.decrypt(algorithm, claims.getSubject(), secretKey, ivParameterSpec));
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            throw new IllegalStateException("Error while getting id from token");
+        }
     }
 
     public boolean validateJwtToken(String jwtToken) {
@@ -71,6 +90,7 @@ public class TokenService {
         return false;
     }
 
+
     @Transactional
     public JwtToken createToken(User user, Duration expireIn, TokenType tokenType) {
         String tokenValue = createJwtTokenValue(user.getId(), expireIn);
@@ -81,7 +101,7 @@ public class TokenService {
         return tokenRepository.save(jwtToken);
     }
 
-    public void delete(JwtToken jwtToken){
+    public void delete(JwtToken jwtToken) {
         tokenRepository.delete(jwtToken);
     }
 }
