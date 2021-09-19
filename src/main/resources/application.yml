@@ -63,7 +63,11 @@ spring:
 app:
   appName: FullStack template
   max-request-size: 200000000 # 200 MB
+  auth:
+    tokenSecret: ${AUTH_TOKEN_SECRET}
 server:
   tomcat:
     connection-timeout: 5s
+
+
 

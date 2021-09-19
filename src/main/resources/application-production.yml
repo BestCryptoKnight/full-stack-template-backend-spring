@@ -11,7 +11,6 @@ app:
   emailChangeConfirmationUri: ${app.frontEndUri}/confirm-email-change
   passwordResetUri: ${app.frontEndUri}/password-reset
   auth:
-    tokenSecret: ${AUTH_TOKEN_SECRET}
     accessTokenExpirationMsec: 300000 # 5 minutes
     persistentTokenExpirationMsec: 2592000000 # 30 days
     verificationTokenExpirationMsec: 3600000 # 1 hour
