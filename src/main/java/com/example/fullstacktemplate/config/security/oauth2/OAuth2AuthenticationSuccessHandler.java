@@ -2,8 +2,8 @@ package com.example.fullstacktemplate.config.security.oauth2;
 
 import com.example.fullstacktemplate.config.AppProperties;
 import com.example.fullstacktemplate.config.security.UserPrincipal;
+import com.example.fullstacktemplate.dto.AuthResponseDto;
 import com.example.fullstacktemplate.exception.BadRequestException;
-import com.example.fullstacktemplate.model.JwtToken;
 import com.example.fullstacktemplate.model.User;
 import com.example.fullstacktemplate.repository.TokenRepository;
 import com.example.fullstacktemplate.service.*;
@@ -21,9 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
-import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.REDIRECT_URI_PARAM_COOKIE_NAME;
+import static com.example.fullstacktemplate.service.CookieOAuth2AuthorizationRequestService.*;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -51,15 +50,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        String targetUrl = determineTargetUrl(request, response, authentication);
-
-        if (response.isCommitted()) {
-            logger.debug("Response has already been committed. Unable to redirect to " + targetUrl);
-            return;
+        try {
+            String targetUrl = determineTargetUrl(request, response, authentication);
+            if (response.isCommitted()) {
+                logger.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+                return;
+            }
+            clearAuthenticationAttributes(request, response);
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        } finally {
+            clearAuthenticationAttributes(request, response);
         }
-
-        clearAuthenticationAttributes(request, response);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     @Override
@@ -72,14 +73,44 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
-        User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(()->new BadRequestException("userNotFound"));
-        authenticationService.addRefreshToken(user);
-        String accessToken = authenticationService.createAccessToken(user);
+        User user = userService.findById((((UserPrincipal) authentication.getPrincipal()).getId())).orElseThrow(() -> new BadRequestException("userNotFound"));
+        if (user.getTwoFactorEnabled()) {
+            return determineTargetTwoFactorUrl(request, redirectUri, authentication);
+        }
+        AuthResponseDto authResponseDto = authenticationService.login((UserPrincipal) authentication.getPrincipal());
         return UriComponentsBuilder.fromUriString(targetUrl)
-                .queryParam("expires", TimeUnit.MILLISECONDS.toDays(appProperties.getAuth().getPersistentTokenExpirationMsec()))
-                .queryParam("access_token", accessToken)
+                .queryParam("access_token", authResponseDto.getAccessToken())
                 .build().toUriString();
+
     }
+
+    private String determineTargetTwoFactorUrl(HttpServletRequest request, Optional<String> redirectUri, Authentication authentication) {
+        String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
+        try {
+            Optional<String> twoFactorCode = CookieUtils.getCookie(request, TWO_FACTOR_CODE).map(Cookie::getValue);
+            Optional<String> recoveryCode = CookieUtils.getCookie(request, RECOVERY_CODE).map(Cookie::getValue);
+            if (twoFactorCode.isEmpty() && recoveryCode.isEmpty()) {
+                return UriComponentsBuilder.fromUriString(targetUrl)
+                        .queryParam("two_factor_required", true)
+                        .build().toUriString();
+            }
+            AuthResponseDto authResponseDto;
+            if (twoFactorCode.isPresent()) {
+                authResponseDto = authenticationService.loginWithVerificationCode((UserPrincipal) authentication.getPrincipal(), twoFactorCode.get());
+            } else {
+                authResponseDto = authenticationService.loginWithRecoveryCode((UserPrincipal) authentication.getPrincipal(), recoveryCode.get());
+            }
+            return UriComponentsBuilder.fromUriString(targetUrl)
+                    .queryParam("access_token", authResponseDto.getAccessToken())
+                    .build().toUriString();
+        } catch (BadRequestException e) {
+            return UriComponentsBuilder.fromUriString(targetUrl)
+                    .queryParam("two_factor_required", true)
+                    .queryParam("error", messageService.getMessage(e.getLocalizedMessage()))
+                    .build().toUriString();
+        }
+    }
+
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);

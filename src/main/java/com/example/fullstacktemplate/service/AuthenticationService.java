@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.DateFormat;
@@ -63,55 +62,71 @@ public class AuthenticationService {
         this.messageService = messageService;
     }
 
-    public boolean isVerificationCodeValid(Long userId, String verificationCode) {
+    private boolean isVerificationCodeValid(Long userId, String verificationCode) {
         User user = userRepository.findById(userId).orElseThrow(() -> new BadRequestException("userNotFound"));
         return isVerificationCodeValid(user, verificationCode);
     }
 
-    public boolean isVerificationCodeValid(User user, String verificationCode) {
+    private boolean isVerificationCodeValid(User user, String verificationCode) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
         return verifier.isValidCode(user.getTwoFactorSecret(), verificationCode);
     }
 
-    public boolean isRecoveryCodeValid(Long userId, String recoveryCode) {
+    private boolean isRecoveryCodeValid(Long userId, String recoveryCode) {
         User user = userRepository.findById(userId).orElseThrow(() -> new BadRequestException("userNotFound"));
+        return isRecoveryCodeValid(user, recoveryCode);
+    }
+
+    private boolean isRecoveryCodeValid(User user, String recoveryCode) {
         return user.getTwoFactorRecoveryCodes()
                 .stream()
                 .anyMatch(twoFactorRecoveryCode -> recoveryCode.equals(twoFactorRecoveryCode.getRecoveryCode()));
     }
 
-    public void deleteRecoveryCode(Long userId, String recoveryCode) {
+    private void deleteRecoveryCode(Long userId, String recoveryCode) {
         twoFactoryRecoveryCodeRepository.deleteByUserIdAndRecoveryCode(userId, recoveryCode);
     }
 
-    public AuthResponseDto loginWithVerificationCode(LoginVerificationRequestDto loginVerificationRequestDto) {
-        UserPrincipal userPrincipal = getUserPrincipal(loginVerificationRequestDto.getEmail(), loginVerificationRequestDto.getPassword());
+    public AuthResponseDto loginWithVerificationCode(UserPrincipal userPrincipal, String code) {
         User user = userService.findById(userPrincipal.getId()).orElseThrow(() -> new BadRequestException("userNotFound"));
-        if (isVerificationCodeValid(userPrincipal.getId(), loginVerificationRequestDto.getCode())) {
+        if (isVerificationCodeValid(userPrincipal.getId(), code)) {
             return getAuthResponse(user);
         }
         throw new BadRequestException("invalidVerificationCode");
     }
 
-    public AuthResponseDto loginWithRecoveryCode(LoginVerificationRequestDto loginVerificationRequestDto) {
+    public AuthResponseDto loginWithVerificationCode(LoginVerificationRequestDto loginVerificationRequestDto) {
         UserPrincipal userPrincipal = getUserPrincipal(loginVerificationRequestDto.getEmail(), loginVerificationRequestDto.getPassword());
+        return loginWithVerificationCode(userPrincipal, loginVerificationRequestDto.getCode());
+    }
+
+    public AuthResponseDto loginWithRecoveryCode(UserPrincipal userPrincipal, String verificationCode) {
         User user = userService.findByEmail(userPrincipal.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
-        if (isRecoveryCodeValid(user.getId(), loginVerificationRequestDto.getCode())) {
-            deleteRecoveryCode(user.getId(), loginVerificationRequestDto.getCode());
+        if (isRecoveryCodeValid(user.getId(), verificationCode)) {
+            deleteRecoveryCode(user.getId(), verificationCode);
             return getAuthResponse(user);
         }
         throw new BadRequestException("invalidRecoveryCode");
     }
 
-    public AuthResponseDto login(LoginRequestDto loginRequestDto) {
-        UserPrincipal userPrincipal = getUserPrincipal(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+    public AuthResponseDto loginWithRecoveryCode(LoginVerificationRequestDto loginVerificationRequestDto) {
+        UserPrincipal userPrincipal = getUserPrincipal(loginVerificationRequestDto.getEmail(), loginVerificationRequestDto.getPassword());
+        return loginWithRecoveryCode(userPrincipal, loginVerificationRequestDto.getCode());
+    }
+
+    public AuthResponseDto login(UserPrincipal userPrincipal) {
         User user = userService.findByEmail(userPrincipal.getEmail()).orElseThrow(() -> new BadRequestException("userNotFound"));
         if (user.getEmailVerified()) {
             return getAuthResponse(user);
         }
         throw new BadRequestException("accountNotActivated");
+    }
+
+    public AuthResponseDto login(LoginRequestDto loginRequestDto) {
+        UserPrincipal userPrincipal = getUserPrincipal(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+        return login(userPrincipal);
     }
 
     public Optional<JwtToken> getRefreshToken() {
@@ -135,7 +150,7 @@ public class AuthenticationService {
     }
 
 
-    public void addRefreshToken(User user) {
+    private void addRefreshToken(User user) {
         JwtToken refreshToken = createRefreshToken(user);
         HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
@@ -160,7 +175,7 @@ public class AuthenticationService {
         Optional<JwtToken> optionalRefreshToken = getRefreshToken();
         if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getUser().getId().equals(user.getId())) {
             tokenService.delete(optionalRefreshToken.get());
-           removeRefreshToken();
+            removeRefreshToken();
         } else {
             throw new BadRequestException("tokenExpired");
         }

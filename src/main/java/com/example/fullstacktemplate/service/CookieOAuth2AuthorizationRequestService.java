@@ -4,7 +4,6 @@ import com.example.fullstacktemplate.util.CookieUtils;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +14,8 @@ public class CookieOAuth2AuthorizationRequestService implements AuthorizationReq
     public static final String OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME = "oauth2_auth_request";
     public static final String REDIRECT_URI_PARAM_COOKIE_NAME = "redirect_uri";
     public static final String LANGUAGE_COOKIE_NAME = "language";
+    public static final String TWO_FACTOR_CODE = "two_factor_code";
+    public static final String RECOVERY_CODE = "recovery_code";
     private static final int cookieExpireSeconds = 180;
 
     @Override
@@ -30,6 +31,8 @@ public class CookieOAuth2AuthorizationRequestService implements AuthorizationReq
             CookieUtils.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
             CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME);
             CookieUtils.deleteCookie(request, response, LANGUAGE_COOKIE_NAME);
+            CookieUtils.deleteCookie(request, response, TWO_FACTOR_CODE);
+            CookieUtils.deleteCookie(request, response, RECOVERY_CODE);
             return;
         }
 
@@ -44,6 +47,15 @@ public class CookieOAuth2AuthorizationRequestService implements AuthorizationReq
         } else {
             CookieUtils.addCookie(response, LANGUAGE_COOKIE_NAME, "en", cookieExpireSeconds);
         }
+        String twoFactorCode = request.getParameter(TWO_FACTOR_CODE);
+        if (StringUtils.isNotBlank(twoFactorCode)) {
+            CookieUtils.addCookie(response, TWO_FACTOR_CODE, twoFactorCode, cookieExpireSeconds);
+        }
+
+        String recoveryCode = request.getParameter(RECOVERY_CODE);
+        if (StringUtils.isNotBlank(recoveryCode)) {
+            CookieUtils.addCookie(response, RECOVERY_CODE, recoveryCode, cookieExpireSeconds);
+        }
     }
 
     @Override
@@ -55,5 +67,7 @@ public class CookieOAuth2AuthorizationRequestService implements AuthorizationReq
         CookieUtils.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
         CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME);
         CookieUtils.deleteCookie(request, response, LANGUAGE_COOKIE_NAME);
+        CookieUtils.deleteCookie(request, response, TWO_FACTOR_CODE);
+        CookieUtils.deleteCookie(request, response, RECOVERY_CODE);
     }
 }
