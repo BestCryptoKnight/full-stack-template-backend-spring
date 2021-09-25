@@ -1,28 +1,25 @@
-# Fullstack boilerplate spring boot backend
+# Full stack template - Spring boot 
 
-This is a template spring boot REST API for fullstack app.  
 
-It provides basic functionalities that are necessary for any app such as (detail description can be found here):
+<p align="center">
+ <img src="./docs/logo.png" width="400">
+</p>
 
-* **User registration**
-    * username, email and password. Account has to be activated via email
-    * O2 - Github, Google, Facebook
-* **User login**
-    * email + password
-    * email + password + two-factor code. Two-factor can be set once user is logged in.
-    * email + password + recovery code. In case two factor code can not be used.
-    * O2 authentication - Github, Google, Facebook
-    * O2 authentication + two-factor. Two-factor can be set once user is logged in
-* **Forgotten password** - Password change request is send on email
-* **Account management**
-    * profile picture, email, username update. If email is updated the change has to be approved from new email -
-      otherwise email will not be updated
-    * password change
-    * cancel account
-* **i18n support**
+Full stack template is a React/Spring based template webapp that provides set of functionalities that are necessary for almost any web app. The code and all components were structured so that project is easy to test, maintain and expand.
 
-Frontend template repositories: 
-* [React](https://github.com/Hasatori/fullstack-boilerplate-react-frontend) - web support
+This is a repository for the backend part written in Spring boot.
+
+Frontend can be found [HERE](https://github.com/Hasatori/fullstack-boilerplate-react-frontend)
+
+The template is running on the following url:  <a href="https://www.full-stack-template.com/" target="_blank">https://www.full-stack-template.com</a>
+
+![frontend-login-page](./docs/frontend-login-page.png)
+
+## Installation
+
+1) Package app `mvn clean install`
+2) Start app `java -jar -Dspring.profiles.active=<active_profiles> <jar_name> `
+
 
 ## Configuration
 
@@ -48,3 +45,22 @@ For security reasons sensitive information such as database username or O2 secre
 | MAIL_SERVER_HOST        | spring.mail.host; spring.mail.properties.mail.smtp.ssl.trust        
 | MAIL_SERVER_USERNAME    | spring.mail.username         
 | MAIL_SERVER_PASSWORD    | spring.mail.password
+
+## General supported functionalities
+### User registration
+  * username, email and password. Account has to be activated via email
+  * O2 - Github, Google, Facebook
+### User login
+  * email + password
+  * email + password + two-factor code. Two-factor can be set once user is logged in.
+  * email + password + recovery code. In case two factor code can not be used.
+  * O2 authentication - Github, Google, Facebook
+  * O2 authentication + two-factor. Two-factor can be set once user is logged in
+### Forgotten password 
+   * Password change request is send on email
+### Account management
+  * profile picture, email, username update. If email is updated the change has to be approved from new email -
+    otherwise email will not be updated
+  * password change
+  * cancel account
+
