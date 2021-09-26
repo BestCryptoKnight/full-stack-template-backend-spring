@@ -11,9 +11,9 @@ This is a repository for the backend part written in Spring boot.
 
 Frontend can be found [HERE](https://github.com/Hasatori/fullstack-boilerplate-react-frontend)
 
-The template is running on the following url:  <a href="https://www.full-stack-template.com/" target="_blank">https://www.full-stack-template.com</a>
+Api documentation can be found at:  <a href="https://fullstack-template-spring.herokuapp.com/swagger-ui.html" target="_blank">fullstack-template-spring.herokuapp.com/swagger-ui.html</a>
 
-![frontend-login-page](./docs/frontend-login-page.png)
+![swagger_front_page](./docs/swagger_front_page.png)
 
 ## Installation
 
