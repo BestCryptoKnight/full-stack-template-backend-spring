@@ -146,7 +146,7 @@ public class AuthenticationService {
     }
 
     private JwtToken createRefreshToken(User user) {
-        return tokenService.createToken(user, Duration.of(appProperties.getAuth().getPersistentTokenExpirationMsec(), ChronoUnit.MILLIS), TokenType.REFRESH);
+        return tokenService.createToken(user, Duration.of(appProperties.getAuth().getRefreshTokenExpirationMsec(), ChronoUnit.MILLIS), TokenType.REFRESH);
     }
 
 
@@ -155,7 +155,7 @@ public class AuthenticationService {
         HttpServletResponse response = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .map(ServletRequestAttributes::getResponse).orElseThrow(IllegalStateException::new);
         Date expires = new Date();
-        expires.setTime(expires.getTime() + appProperties.getAuth().getPersistentTokenExpirationMsec());
+        expires.setTime(expires.getTime() + appProperties.getAuth().getRefreshTokenExpirationMsec());
         DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.US);
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
         response.setHeader("Set-Cookie", String.format("%s=%s; Expires=%s; Path=/; HttpOnly; SameSite=none; Secure", REFRESH_TOKEN_COOKIE_NAME, refreshToken.getValue(), df.format(expires)));

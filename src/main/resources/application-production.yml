@@ -12,5 +12,5 @@ app:
   passwordResetUri: ${app.frontEndUri}/password-reset
   auth:
     accessTokenExpirationMsec: 300000 # 5 minutes
-    persistentTokenExpirationMsec: 2592000000 # 30 days
+    refreshTokenExpirationMsec: 2592000000 # 30 days
     verificationTokenExpirationMsec: 3600000 # 1 hour

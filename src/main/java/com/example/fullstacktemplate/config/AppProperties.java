@@ -3,14 +3,9 @@ package com.example.fullstacktemplate.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 @ConfigurationProperties(prefix = "app")
 @Getter
@@ -29,7 +24,7 @@ public class AppProperties {
     public static class Auth {
         private String tokenSecret;
         private long accessTokenExpirationMsec;
-        private long persistentTokenExpirationMsec;
+        private long refreshTokenExpirationMsec;
         private long verificationTokenExpirationMsec;
 
         public String getTokenSecret() {
@@ -48,12 +43,12 @@ public class AppProperties {
             this.accessTokenExpirationMsec = accessTokenExpirationMsec;
         }
 
-        public long getPersistentTokenExpirationMsec() {
-            return persistentTokenExpirationMsec;
+        public long getRefreshTokenExpirationMsec() {
+            return refreshTokenExpirationMsec;
         }
 
-        public void setPersistentTokenExpirationMsec(long persistentTokenExpirationMsec) {
-            this.persistentTokenExpirationMsec = persistentTokenExpirationMsec;
+        public void setRefreshTokenExpirationMsec(long refreshTokenExpirationMsec) {
+            this.refreshTokenExpirationMsec = refreshTokenExpirationMsec;
         }
 
         public long getVerificationTokenExpirationMsec() {
