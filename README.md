@@ -31,7 +31,7 @@ Application can be configured via yml files that are stored at `src/main/resourc
 
 For security reasons sensitive information such as database username or O2 secrets are not exposed in the yml files but are set from system environment properties
 
-| Property name           | Yaml paths            |                              
+| Property name           | Yml paths            |                              
 | -----------             | -----------           |
 | DATASOURCE_URL          | spring.datasource.url                                           
 | DATASOURCE_USERNAME     | spring.datasource.username                                      
@@ -45,6 +45,7 @@ For security reasons sensitive information such as database username or O2 secre
 | MAIL_SERVER_HOST        | spring.mail.host; spring.mail.properties.mail.smtp.ssl.trust        
 | MAIL_SERVER_USERNAME    | spring.mail.username         
 | MAIL_SERVER_PASSWORD    | spring.mail.password
+| AUTH_TOKEN_SECRET       | app.auth.tokenSecret
 
 ## General supported functionalities
 ### User registration
