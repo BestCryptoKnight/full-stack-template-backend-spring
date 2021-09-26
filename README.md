@@ -64,3 +64,21 @@ For security reasons sensitive information such as database username or O2 secre
   * password change
   * cancel account
 
+## Spring specific supported functionalities
+
+### Double JWT authentication
+
+There are two tokens issues for each user. One refresh token and one access token. Access token lasts typically for few minutes and is send with every request. It is users one time key to resorces. Refresh token lasts for much longer time (Can be a month but also a year). It is stored in http-only cookie. When access token expires  client has to request a new access token via `/auth/access-token` endpoint. If refresh token expires user is requested to log in.
+
+Token\`s expiration can be set via properties `accessTokenExpirationMsec` and `refreshTokenExpirationMsec` that are in the yml config files.
+
+### Localization 
+
+Localization is done using ![ResourceBundleMessageSource](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/support/ResourceBundleMessageSource.html) and localization properties files are stored at ![./src/main/resources/lang](./src/main/resources/lang). 
+
+For getting localized messages service ![MessageService](./src/main/java/com/example/fullstacktemplate/service/MessageService.java) was created. The service considers request\`s locale preferences and loads message accordingly. It is important for frontend app that has also localization support.
+
+
+
+
+
