@@ -9,7 +9,7 @@ Full-stack template is a React/Spring based template webapp that provides set of
 
 This is a repository for the backend part written in Spring boot.
 
-Frontend can be found [HERE](https://github.com/Hasatori/fullstack-boilerplate-react-frontend)
+The Frontend can be found [HERE](https://github.com/Hasatori/fullstack-boilerplate-react-frontend)
 
 Api documentation can be found at:  <a href="https://fullstack-template-spring.herokuapp.com/swagger-ui.html" target="_blank">fullstack-template-spring.herokuapp.com/swagger-ui.html</a>
 
@@ -54,14 +54,14 @@ For security reasons sensitive information such as database username or O2 secre
 ### User login
   * email + password
   * email + password + two-factor code. Two-factor can be set once user is logged in.
-  * email + password + recovery code. In case two factor code can not be used.
+  * email + password + recovery code. In case two-factor code can not be used.
   * O2 authentication - Github, Google, Facebook
   * O2 authentication + two-factor. Two-factor can be set once user is logged in
 ### Forgotten password 
-   * Password change request is send on email
+   * Password change request is sent by email
 ### Account management
-  * profile picture, email, username update. If email is updated the change has to be approved from new email -
-    otherwise email will not be updated
+  * profile picture, email, username update. If an email is updated the change has to be approved from the new email -
+    otherwise, email will not be updated
   * password change
   * cancel account
 
@@ -69,7 +69,7 @@ For security reasons sensitive information such as database username or O2 secre
 
 ### Double JWT authentication
 
-There are two tokens issues for each user. One refresh token and one access token. Access token lasts typically for few minutes and is send with every request. It is users one time key to resorces. Refresh token lasts for much longer time (Can be a month but also a year). It is stored in http-only cookie. When access token expires  client has to request a new access token via `/auth/access-token` endpoint. If refresh token expires user is requested to log in.
+There are two tokens issues for each user. One refresh token and one access token. Access token lasts typically for few minutes and is sent with every request. It is user\`s one time key to resources. Refresh token lasts for much longer time (Can be a month but also a year). It is stored in a http-only cookie. When the access token expires client has to request a new access token via `/auth/access-token` endpoint. If the refresh token expires user is requested to log in.
 
 Token\`s expiration can be set via properties `accessTokenExpirationMsec` and `refreshTokenExpirationMsec` that are in the yml config files.
 
@@ -77,7 +77,7 @@ Token\`s expiration can be set via properties `accessTokenExpirationMsec` and `r
 
 Localization is done using ![ResourceBundleMessageSource](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/support/ResourceBundleMessageSource.html) and localization properties files are stored at ![./src/main/resources/lang](./src/main/resources/lang). 
 
-For getting localized messages service ![MessageService](./src/main/java/com/example/fullstacktemplate/service/MessageService.java) was created. The service considers request\`s locale preferences and loads message accordingly. It is important for frontend app that has also localization support.
+For getting localized messages service ![MessageService](./src/main/java/com/example/fullstacktemplate/service/MessageService.java) was created. The service considers request\`s locale preferences and loads messages accordingly. It is important for the frontend app that has also localization support.
 
 
 
