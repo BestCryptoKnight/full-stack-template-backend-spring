@@ -52,7 +52,7 @@ public class TokenService {
                     .setSubject(cryptoService.encrypt(algorithm, subject, secretKey, ivParameterSpec))
                     .setIssuedAt(new Date())
                     .setExpiration(expiryDate)
-                    .setIssuer("Full stack template")
+                    .setIssuer("Full-stack template")
                     .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret())
                     .compact();
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {

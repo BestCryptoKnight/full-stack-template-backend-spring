@@ -1,11 +1,11 @@
-# Full stack template - Spring boot 
+# Full-stack template - Spring boot 
 
 
 <p align="center">
  <img src="./docs/logo.png" width="400">
 </p>
 
-Full stack template is a React/Spring based template webapp that provides set of functionalities that are necessary for almost any web app. The code and all components were structured so that project is easy to test, maintain and expand.
+Full-stack template is a React/Spring based template webapp that provides set of functionalities that are necessary for almost any web app. The code and all components were structured so that project is easy to test, maintain and expand.
 
 This is a repository for the backend part written in Spring boot.
 
