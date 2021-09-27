@@ -75,7 +75,7 @@ Token\`s expiration can be set via properties `accessTokenExpirationMsec` and `r
 
 ### Localization 
 
-Localization is done using ![ResourceBundleMessageSource](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/support/ResourceBundleMessageSource.html) and localization properties files are stored at ![./src/main/resources/lang](./src/main/resources/lang). 
+Localization is done using [ResourceBundleMessageSource](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/support/ResourceBundleMessageSource.html) and localization properties files are stored at ![./src/main/resources/lang](./src/main/resources/lang). 
 
 For getting localized messages service ![MessageService](./src/main/java/com/example/fullstacktemplate/service/MessageService.java) was created. The service considers request\`s locale preferences and loads messages accordingly. It is important for the frontend app that has also localization support.
 
