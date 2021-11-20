@@ -201,6 +201,11 @@ public class UserService {
     }
 
     public void requestPasswordReset(User user) throws MalformedURLException, URISyntaxException {
+        Optional<JwtToken> forgottenPasswordToken = tokenRepository.findByUserAndTokenType(user, TokenType.FORGOTTEN_PASSWORD);
+        if (forgottenPasswordToken.isPresent()){
+            log.info("There already is token of type {} for user {}. Going to delete it and issue a new one",TokenType.FORGOTTEN_PASSWORD,user.getName());
+            tokenService.delete(forgottenPasswordToken.get());
+        }
         JwtToken jwtToken = tokenService.createToken(user, Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS), TokenType.FORGOTTEN_PASSWORD);
         URIBuilder uriBuilder = new URIBuilder(appProperties.getPasswordResetUri())
                 .addParameter("email", user.getEmail())
