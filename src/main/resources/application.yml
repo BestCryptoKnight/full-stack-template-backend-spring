@@ -33,8 +33,8 @@ spring:
               - email
               - profile
           facebook:
-            clientId: ${FACEBOOK_CLIENT_ID}
-            clientSecret: ${FACEBOOK_CLIENT_SECRET}
+            clientId: 428949898945138
+            clientSecret: 6093ed1ab3a74524a7dd4416667a5679
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -50,7 +50,7 @@ spring:
           facebook:
             authorizationUri: https://www.facebook.com/v3.0/dialog/oauth
             tokenUri: https://graph.facebook.com/v3.0/oauth/access_token
-            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,name,email,picture.width(250).height(250)
   mail:
     host: ${MAIL_SERVER_HOST}
     port: 587
