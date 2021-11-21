@@ -78,7 +78,15 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         user.setEmailVerified(true);
         user.setAuthProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());
-        user.setName(oAuth2UserInfo.getName());
+        String name = oAuth2UserInfo.getName();
+        if (userRepository.existsByName(oAuth2UserInfo.getName())){
+            int counter = 1;
+            while (userRepository.existsByName(name+counter)){
+                ++counter;
+            }
+            name = name + counter;
+        }
+        user.setName(name);
         user.setEmail(oAuth2UserInfo.getEmail());
         user.setTwoFactorSecret(twoFactorSecretGenerator.generate());
         user.setTwoFactorEnabled(false);
