@@ -180,7 +180,7 @@ public class UserService {
             throw new BadRequestException("usernameInUse");
         }
         String newEmail = newUser.getEmail();
-        String oldEmail = newUser.getEmail();
+        String oldEmail = user.getEmail();
         if (user.getEmail() != null && !user.getEmail().equals(newUser.getEmail())) {
             JwtToken jwtToken = tokenService.createToken(user,  Duration.of(appProperties.getAuth().getVerificationTokenExpirationMsec(), ChronoUnit.MILLIS), TokenType.EMAIL_UPDATE);
             URIBuilder uriBuilder = new URIBuilder(appProperties.getEmailChangeConfirmationUri())
